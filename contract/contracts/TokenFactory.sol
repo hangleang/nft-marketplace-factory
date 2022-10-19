@@ -37,7 +37,7 @@ contract TokenFactory is ITokenFactory, ERC2771Context, Multicall, AccessControl
     /// @dev Only CREATOR_ROLE holders.
     bytes32 private constant CREATOR_ROLE = keccak256("CREATOR_ROLE");
 
-    /// @dev Max bps
+    /// @dev Max BPS
     uint256 private constant MAX_BPS = 10_000;
 
     /// @dev Token Type => address of the token implemetation.

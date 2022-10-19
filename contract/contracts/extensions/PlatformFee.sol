@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "./interfaces/IPlatformFee.sol";
 
 abstract contract PlatformFee is IPlatformFee, AccessControlEnumerable {
-    /// @dev Max bps
+    /// @dev Max BPS
     uint256 private constant MAX_BPS = 10_000;
 
     /// @dev The adress that receives all primary sales value.

@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import "./interfaces/IRoyalty.sol";
 
 abstract contract Royalty is IRoyalty, AccessControlEnumerable {
-    /// @dev Max bps
+    /// @dev Max BPS
     uint256 private constant MAX_BPS = 10_000;
 
     /// @dev The recipient of who gets the royalty.

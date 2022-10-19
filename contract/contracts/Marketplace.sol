@@ -412,6 +412,7 @@ contract Marketplace is
         Offer memory targetOffer = offers[_listingId][_offeror];
         Listing memory targetListing = listings[_listingId];
 
+        require(targetOffer.offeror != address(0), "!OFFER");
         require(_currency == targetOffer.currency && _pricePerToken == targetOffer.pricePerToken, "!PRICE");
         require(targetOffer.expirationTimestamp > block.timestamp, "EXPIRED");
 

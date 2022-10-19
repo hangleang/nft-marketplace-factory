@@ -49,7 +49,7 @@ library CurrencyTransferLib {
                 safeTransferNativeTokenWithWrapper(_to, _amount, _nativeTokenWrapper);
             } else if (_to == address(this)) {
                 // store native currency in weth
-                require(_amount == msg.value, "msg.value != amount");
+                require(_amount == msg.value, "!VALUE");
                 IWETH(_nativeTokenWrapper).deposit{ value: _amount }();
             } else {
                 safeTransferNativeTokenWithWrapper(_to, _amount, _nativeTokenWrapper);
@@ -82,7 +82,7 @@ library CurrencyTransferLib {
         // solhint-disable avoid-low-level-calls
         // slither-disable-next-line low-level-calls
         (bool success, ) = to.call{ value: value }("");
-        require(success, "native token transfer failed");
+        require(success, "FAILED");
     }
 
     /// @dev Transfers `amount` of native token to `to`. (With native token wrapping)

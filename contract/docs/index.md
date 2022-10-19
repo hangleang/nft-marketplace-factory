@@ -23,7 +23,7 @@ _Only CREATOR_ROLE holders._
 uint256 MAX_BPS
 ```
 
-_Max bps_
+_Max BPS_
 
 ### tokenBeacons
 
@@ -215,7 +215,7 @@ _Only MINTER_ROLE holders can sign off on `MintRequest`s._
 uint256 MAX_BPS
 ```
 
-_Max bps in the thirdweb system_
+_Max BPS in the thirdweb system_
 
 ### nextTokenIdToMint
 
@@ -545,7 +545,7 @@ _Only MINTER_ROLE holders can sign off on `MintRequest`s._
 uint256 MAX_BPS
 ```
 
-_Max bps in the thirdweb system_
+_Max BPS in the thirdweb system_
 
 ### nextTokenIdToMint
 
@@ -903,7 +903,7 @@ function isEncryptedBatch(uint256 _batchId) public view returns (bool)
 uint256 MAX_BPS
 ```
 
-_Max bps_
+_Max BPS_
 
 ### _platformFeeRecipient
 
@@ -1201,7 +1201,7 @@ Internal function without access restriction._
 uint256 MAX_BPS
 ```
 
-_Max bps_
+_Max BPS_
 
 ### _platformFeeRecipient
 
@@ -1335,7 +1335,7 @@ Internal function without access restriction._
 uint256 MAX_BPS
 ```
 
-_Max bps_
+_Max BPS_
 
 ### royaltyRecipient
 
@@ -2077,7 +2077,7 @@ _Only MINTER_ROLE holders can sign off on `MintRequest`s._
 uint256 MAX_BPS
 ```
 
-_Max bps_
+_Max BPS_
 
 ### nextTokenIdToMint
 
@@ -2322,7 +2322,7 @@ _Only MINTER_ROLE holders can sign off on `MintRequest`s._
 uint256 MAX_BPS
 ```
 
-_Max bps in the thirdweb system_
+_Max BPS in the thirdweb system_
 
 ### nextTokenIdToMint
 
@@ -3542,7 +3542,7 @@ Internal function without access restriction._
 uint256 MAX_BPS
 ```
 
-_Max bps_
+_Max BPS_
 
 ### royaltyRecipient
 

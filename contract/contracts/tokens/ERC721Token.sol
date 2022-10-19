@@ -77,7 +77,7 @@ contract ERC721Token is
     /// @dev Only MINTER_ROLE holders can sign off on `MintRequest`s.
     bytes32 private constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-    /// @dev Max bps in the thirdweb system
+    /// @dev Max BPS
     uint256 private constant MAX_BPS = 10_000;
 
     /// @dev The token ID of the next token to mint.

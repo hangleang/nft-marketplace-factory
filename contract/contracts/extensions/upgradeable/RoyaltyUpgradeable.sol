@@ -10,7 +10,7 @@ import "@openzeppelin/contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 import "../interfaces/IRoyalty.sol";
 
 abstract contract RoyaltyUpgradeable is IRoyalty, Initializable, AccessControlEnumerableUpgradeable {
-    /// @dev Max bps
+    /// @dev Max BPS
     uint256 private constant MAX_BPS = 10_000;
 
     /// @dev The recipient of who gets the royalty.
