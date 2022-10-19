@@ -1,0 +1,10 @@
+# directories
+**/dist
+**/node_modules
+**/types
+**/docs
+
+# files
+*.env
+*.log
+npm-debug.log*

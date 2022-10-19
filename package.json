@@ -1,0 +1,35 @@
+{
+  "name": "nft-collection-factory",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "commit": "git-cz",
+    "dev": "concurrently -k \"pnpm dev:contract\" \"pnpm dev:frontend\"",
+    "dev:frontend": "cd frontend && pnpm dev",
+    "dev:contract": "cd contract && pnpm dev",
+    "build": "pnpm build:contract && pnpm build:frontend",
+    "build:frontend": "cd frontend && pnpm build",
+    "build:contract": "cd contract && pnpm build",
+    "deploy": "cd contract && pnpm deploy",
+    "test": "cd contract && pnpm test",
+    "subgraph:init": "graph init --studio subgraph",
+    "release": "pnpm build && release-it",
+    "prepack": "pnpm build",
+    "postinstall": "husky install"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.0.1",
+    "@commitlint/config-conventional": "^17.0.0",
+    "@graphprotocol/graph-cli": "^0.35.0",
+    "@release-it/conventional-changelog": "^5.0.0",
+    "commitizen": "^4.2.5",
+    "concurrently": "^7.4.0",
+    "cz-conventional-changelog": "^3.3.0",
+    "husky": "^8.0.1",
+    "lint-staged": "^13.0.3",
+    "prettier": "^2.7.1",
+    "release-it": "^15.0.0",
+    "solhint": "^3.3.7"
+  }
+}
