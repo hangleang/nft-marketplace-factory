@@ -25,6 +25,8 @@ abstract contract OpenseaComp is IOpenseaComp, AccessControlEnumerable {
      * Can only be called by the module owner.
      */
     function setOwner(address _newOwner) public override virtual onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(hasRole(DEFAULT_ADMIN_ROLE, _newOwner), "!ADMIN_ROLE");
+        
         _setOwner(_newOwner);
     }
 
@@ -33,7 +35,6 @@ abstract contract OpenseaComp is IOpenseaComp, AccessControlEnumerable {
      * Internal function without access restriction.
      */
     function _setOwner(address _newOwner) internal virtual {
-        require(hasRole(DEFAULT_ADMIN_ROLE, _newOwner), "!ADMIN_ROLE");
         address _prevOwner = _owner;
         _owner = _newOwner;
 

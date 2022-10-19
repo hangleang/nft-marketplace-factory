@@ -30,13 +30,13 @@ const func: DeployFunction = async ({ getNamedAccounts, deployments, network }) 
     waitConfirmations,
   });
 
-  log("Registry Deployed!");
-  log("----------------------------------------------------");
-  log("Set the recently deployer address in ../../helper-config.ts");
-  log("----------------------------------------------------");
-
   // Verify the deployment
   if (!isDev) {
+    log("Registry Deployed!");
+    log("----------------------------------------------------");
+    log("Set the recently deployer address in ../../helper-config.ts");
+    log("----------------------------------------------------");
+
     log("Verifying...");
     await verify(registry.address, args);
   }

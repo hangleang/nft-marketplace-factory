@@ -42,5 +42,5 @@ const func: DeployFunction = async ({ getNamedAccounts, deployments, network }) 
 };
 
 export default func;
-func.tags = ["all", "TokenFactory", "NFT_Marketplace"];
+func.tags = ["all", "TokenFactory"];
 func.dependencies = ["mocks"]; // this contains dependencies tags need to execute before deploy this contract

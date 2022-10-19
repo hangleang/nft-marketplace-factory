@@ -25,13 +25,13 @@ const func: DeployFunction = async ({ getNamedAccounts, deployments, network }) 
   const registry: ContractRegistry = await ethers.getContractAt("ContractRegistry", registryAddress);
   args = [...args, registry.address];
 
-  const isRegistryAdmin: boolean = await registry.hasRole(
-    ethers.utils.solidityKeccak256(["string"], ["DEFAULT_ADMIN_ROLE"]),
-    deployer,
-  );
-  if (!isRegistryAdmin) {
-    throw new Error("Caller is not registry admin");
-  }
+  // const isRegistryAdmin: boolean = await registry.hasRole(
+  //   ethers.utils.solidityKeccak256(["string"], ["DEFAULT_ADMIN_ROLE"]),
+  //   deployer,
+  // );
+  // if (!isRegistryAdmin) {
+  //   throw new Error("Caller is not registry admin");
+  // }
 
   // the following will only deploy "ContractFactory" if the contract was never deployed or if the code changed since last deployment
   const factory = await deploy("ContractFactory", {
