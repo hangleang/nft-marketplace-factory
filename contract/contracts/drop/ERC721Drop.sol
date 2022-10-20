@@ -58,7 +58,7 @@ contract ERC721Drop is
                             State variables
     //////////////////////////////////////////////////////////////*/
 
-    bytes32 private constant MODULE_TYPE = bytes32("ERC721Drop");
+    bytes32 private constant CONTRACT_TYPE = bytes32("ERC721Drop");
     uint256 private constant VERSION = 1;
     
     /// @dev Contract level metadata.
@@ -157,7 +157,7 @@ contract ERC721Drop is
 
     /// @dev Returns the module type of the contract.
     function contractType() external override pure returns (bytes32) {
-        return MODULE_TYPE;
+        return CONTRACT_TYPE;
     }
 
     /// @dev Returns the version of the contract.

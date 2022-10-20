@@ -21,8 +21,7 @@ const func: DeployFunction = async ({ getNamedAccounts, deployments, network }) 
     args = [TRUST_FORWARDERS[network.name]];
   }
 
-  const registryAddress = (await deployments.get("ContractRegistry")).address;
-  const registry: ContractRegistry = await ethers.getContractAt("ContractRegistry", registryAddress);
+  const registry: ContractRegistry = await ethers.getContract("ContractRegistry");
   args = [...args, registry.address];
 
   // const isRegistryAdmin: boolean = await registry.hasRole(
