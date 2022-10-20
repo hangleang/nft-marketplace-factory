@@ -123,7 +123,7 @@ contract ContractFactory is IContractFactory, ERC2771Context, Multicall, AccessC
 
     /// @dev Lets a contract admin approve a specific contract for deployment.
     function approveImplementation(address _implementation, bool _toApprove) external override {
-        require(hasRole(FACTORY_ROLE, _msgSender()), "not admin.");
+        require(hasRole(FACTORY_ROLE, _msgSender()), "!ACCESS");
 
         approvals[_implementation] = _toApprove;
 
