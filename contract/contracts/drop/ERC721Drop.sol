@@ -69,8 +69,8 @@ contract ERC721Drop is
     /// @dev Only MINTER_ROLE holders can sign off on `MintRequest`s.
     bytes32 private constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-    /// @dev Max BPS
-    uint256 private constant MAX_BPS = 10_000;
+    /// @dev The max bps of the contract. So, 10_000 == 100 %
+    uint16 public constant MAX_BPS = 10_000;
 
     /// @dev The next token ID of the NFT to "lazy mint".
     uint256 public nextTokenIdToMint;

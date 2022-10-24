@@ -64,10 +64,8 @@ abstract contract RoyaltyUpgradeable is IRoyalty, Initializable, AccessControlEn
         uint256 _tokenId,
         address _recipient,
         uint256 _bps
-    ) public override virtual onlyRole(DEFAULT_ADMIN_ROLE) isValidBPS(_bps) {
-        royaltyInfoForToken[_tokenId] = RoyaltyInfo({ recipient: _recipient, bps: _bps });
-
-        emit RoyaltyForToken(_tokenId, _recipient, _bps);
+    ) external override virtual onlyRole(DEFAULT_ADMIN_ROLE) {
+        _setRoyaltyInfoForToken(_tokenId, _recipient, _bps);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -111,6 +109,20 @@ abstract contract RoyaltyUpgradeable is IRoyalty, Initializable, AccessControlEn
         royaltyBps = uint128(_royaltyBps);
 
         emit DefaultRoyalty(_royaltyRecipient, _royaltyBps);
+    }
+
+    /**
+     * @dev Lets a module admin set the royalty recipient for a particular token Id.
+     * Internal function without access restriction.
+     */
+    function _setRoyaltyInfoForToken(
+        uint256 _tokenId,
+        address _recipient,
+        uint256 _bps
+    ) internal virtual isValidBPS(_bps) {
+        royaltyInfoForToken[_tokenId] = RoyaltyInfo({ recipient: _recipient, bps: _bps });
+
+        emit RoyaltyForToken(_tokenId, _recipient, _bps);
     }
 
     function supportsInterface(bytes4 interfaceId)

@@ -48,7 +48,7 @@ const func: DeployFunction = async ({ getNamedAccounts, deployments, network }) 
       gasLimit: 5_000_000,
     },
   );
-  console.log("Adding implementations at tx: ", multicallTxn.hash);
+  log("Adding implementations at tx: ", multicallTxn.hash);
   await multicallTxn.wait();
 
   // Verify the deployment

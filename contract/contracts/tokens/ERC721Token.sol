@@ -28,6 +28,8 @@ import "../base/ERC2771ContextUpgradeable.sol";
 import "../lib/CurrencyTransferLib.sol";
 import "../lib/FeeType.sol";
 
+import "hardhat/console.sol";
+
 /**
  * @dev ERC721Token contract definition
  * Initializable: a base contract to aid in writing UPGRADEABLE contracts
@@ -63,9 +65,6 @@ contract ERC721Token is
 
     bytes32 private constant CONTRACT_TYPE = bytes32("ERC721Token");
     uint256 private constant VERSION = 1;
-    
-    /// @dev Contract level metadata.
-    string public contractURI;
 
     bytes32 private constant TYPEHASH =
         keccak256(
@@ -77,8 +76,11 @@ contract ERC721Token is
     /// @dev Only MINTER_ROLE holders can sign off on `MintRequest`s.
     bytes32 private constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-    /// @dev Max bps in the thirdweb system
-    uint256 private constant MAX_BPS = 10_000;
+    /// @dev The max bps of the contract. So, 10_000 == 100 %
+    uint16 private constant MAX_BPS = 10_000;
+
+    /// @dev Contract level metadata.
+    string public contractURI;
 
     /// @dev The token ID of the next token to mint.
     uint256 public nextTokenIdToMint;
@@ -118,6 +120,7 @@ contract ERC721Token is
         // Initialize inherited contracts, most base-like -> most derived.
         __ReentrancyGuard_init();
         __ERC2771Context_init_unchained(_trustedForwarders);
+        // CONTRACT_TYPE & CONTRACT_VERSION
         __EIP712_init_unchained("ERC721Token", "1");
         __ERC721_init_unchained(_name, _symbol);
         __OpenseaComp_init_unchained(_defaultAdmin);
@@ -170,12 +173,6 @@ contract ERC721Token is
         return _mintTo(_to, _uri);
     }
 
-    /// @dev Burns `tokenId`. See {ERC721-_burn}.
-    function burn(uint256 tokenId) public virtual {
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "!APPROVED");
-        _burn(tokenId);
-    }
-
     /// @dev Mints an NFT according to the provided mint request.
     function mintWithSignature(MintRequest calldata _req, bytes calldata _signature)
         external
@@ -189,7 +186,7 @@ contract ERC721Token is
         tokenIdMinted = _mintTo(receiver, _req.uri);
 
         if (_req.royaltyRecipient != address(0)) {
-            setRoyaltyInfoForToken(tokenIdMinted, _req.royaltyRecipient, _req.royaltyBps);
+            _setRoyaltyInfoForToken(tokenIdMinted, _req.royaltyRecipient, _req.royaltyBps);
         }
 
         _collectPrice(_req);
@@ -197,20 +194,10 @@ contract ERC721Token is
         emit TokensMintedWithSignature(signer, receiver, tokenIdMinted, _req);
     }
 
-    /// @dev Verifies that a mint request is valid.
-    function verifyRequest(MintRequest calldata _req, bytes calldata _signature) internal returns (address) {
-        (bool success, address signer) = verify(_req, _signature);
-        require(success, "!SIGNATURE");
-
-        require(
-            _req.validityStartTimestamp <= block.timestamp && _req.validityEndTimestamp >= block.timestamp,
-            "EXPIRED"
-        );
-        require(_req.to != address(0), "!RECIPIENT");
-
-        minted[_req.uid] = true;
-
-        return signer;
+    /// @dev Burns `tokenId`. See {ERC721-_burn}.
+    function burn(uint256 tokenId) public virtual {
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "!APPROVED");
+        _burn(tokenId);
     }
 
     /// @dev Verifies that a mint request is signed by an account holding MINTER_ROLE (at the time of the function call).
@@ -235,9 +222,26 @@ contract ERC721Token is
         emit TokensMinted(_to, tokenId, _uri);
     }
 
+    /// @dev Verifies that a mint request is valid.
+    function verifyRequest(MintRequest calldata _req, bytes calldata _signature) internal returns (address) {
+        (bool success, address signer) = verify(_req, _signature);
+        require(success, "!SIGNATURE");
+
+        require(
+            _req.validityStartTimestamp <= block.timestamp && _req.validityEndTimestamp >= block.timestamp,
+            "EXPIRED"
+        );
+        require(_req.to != address(0), "!RECIPIENT");
+
+        minted[_req.uid] = true;
+
+        return signer;
+    }
+
     /// @dev Returns the address of the signer of the mint request.
     function _recoverAddress(MintRequest calldata _req, bytes calldata _signature) internal view returns (address) {
-        return _hash(_req).recover(_signature);
+        bytes32 digest = _hash(_req);
+        return digest.recover(_signature);
     }
 
     /// @dev Return the digest hash of the mint request.

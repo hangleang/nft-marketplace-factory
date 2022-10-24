@@ -20,10 +20,10 @@ _Only CREATOR_ROLE holders._
 ### MAX_BPS
 
 ```solidity
-uint256 MAX_BPS
+uint16 MAX_BPS
 ```
 
-_Max BPS_
+_The max bps of the contract. So, 10_000 == 100 %_
 
 ### tokenBeacons
 
@@ -212,10 +212,10 @@ _Only MINTER_ROLE holders can sign off on `MintRequest`s._
 ### MAX_BPS
 
 ```solidity
-uint256 MAX_BPS
+uint16 MAX_BPS
 ```
 
-_Max BPS_
+_The max bps of the contract. So, 10_000 == 100 %_
 
 ### nextTokenIdToMint
 
@@ -542,10 +542,10 @@ _Only MINTER_ROLE holders can sign off on `MintRequest`s._
 ### MAX_BPS
 
 ```solidity
-uint256 MAX_BPS
+uint16 MAX_BPS
 ```
 
-_Max BPS_
+_The max bps of the contract. So, 10_000 == 100 %_
 
 ### nextTokenIdToMint
 
@@ -1291,7 +1291,7 @@ Can only be called by the module owner._
 ### setRoyaltyInfoForToken
 
 ```solidity
-function setRoyaltyInfoForToken(uint256 _tokenId, address _recipient, uint256 _bps) public virtual
+function setRoyaltyInfoForToken(uint256 _tokenId, address _recipient, uint256 _bps) external virtual
 ```
 
 _Lets a module admin set the royalty recipient for a particular token Id._
@@ -1327,6 +1327,15 @@ function _setDefaultRoyaltyInfo(address _royaltyRecipient, uint256 _royaltyBps) 
 ```
 
 _Lets a module admin update the royalty bps and recipient.
+Internal function without access restriction._
+
+### _setRoyaltyInfoForToken
+
+```solidity
+function _setRoyaltyInfoForToken(uint256 _tokenId, address _recipient, uint256 _bps) internal virtual
+```
+
+_Lets a module admin set the royalty recipient for a particular token Id.
 Internal function without access restriction._
 
 ### supportsInterface
@@ -1413,12 +1422,6 @@ function deposit() external payable
 
 ```solidity
 function withdraw(uint256 amount) external
-```
-
-### transfer
-
-```solidity
-function transfer(address to, uint256 value) external returns (bool)
 ```
 
 ## IClaimCondition
@@ -1972,10 +1975,10 @@ _Only MINTER_ROLE holders can sign off on `MintRequest`s._
 ### MAX_BPS
 
 ```solidity
-uint256 MAX_BPS
+uint16 MAX_BPS
 ```
 
-_Max BPS_
+_The max bps of the contract. So, 10_000 == 100 %_
 
 ### nextTokenIdToMint
 
@@ -2184,14 +2187,6 @@ bytes32 CONTRACT_TYPE
 uint256 VERSION
 ```
 
-### contractURI
-
-```solidity
-string contractURI
-```
-
-_Contract level metadata._
-
 ### TYPEHASH
 
 ```solidity
@@ -2217,10 +2212,18 @@ _Only MINTER_ROLE holders can sign off on `MintRequest`s._
 ### MAX_BPS
 
 ```solidity
-uint256 MAX_BPS
+uint16 MAX_BPS
 ```
 
-_Max bps in the thirdweb system_
+_The max bps of the contract. So, 10_000 == 100 %_
+
+### contractURI
+
+```solidity
+string contractURI
+```
+
+_Contract level metadata._
 
 ### nextTokenIdToMint
 
@@ -2420,14 +2423,6 @@ bytes32 CONTRACT_TYPE
 uint256 VERSION
 ```
 
-### contractURI
-
-```solidity
-string contractURI
-```
-
-_Contract level metadata._
-
 ### LISTER_ROLE
 
 ```solidity
@@ -2444,6 +2439,14 @@ bytes32 ASSET_ROLE
 
 _Only assets from NFT contracts with asset role can be listed, when listings are restricted by asset address._
 
+### MAX_BPS
+
+```solidity
+uint16 MAX_BPS
+```
+
+_The max bps of the contract. So, 10_000 == 100 %_
+
 ### nativeTokenWrapper
 
 ```solidity
@@ -2452,6 +2455,14 @@ address nativeTokenWrapper
 
 _The address of the native token wrapper contract._
 
+### contractURI
+
+```solidity
+string contractURI
+```
+
+_Contract level metadata._
+
 ### totalListings
 
 ```solidity
@@ -2459,14 +2470,6 @@ uint256 totalListings
 ```
 
 _Total number of listings ever created in the marketplace._
-
-### MAX_BPS
-
-```solidity
-uint16 MAX_BPS
-```
-
-_The max bps of the contract. So, 10_000 == 100 %_
 
 ### timeBuffer
 
@@ -3073,580 +3076,6 @@ function closeAuction(uint256 _listingId, address _closeFor) external
  @param _listingId The uid of the listing (the auction to close).
  @param _closeFor For whom the auction is being closed - the auction creator or winning bidder.
 
-## GreeterError
-
-```solidity
-error GreeterError()
-```
-
-Greeter error
-
-_this used for testing purpose_
-
-## Greeter
-
-explain to an end user what this does
-
-_explain to a developer any extra details_
-
-### greeting
-
-```solidity
-string greeting
-```
-
-Greeting message
-
-### constructor
-
-```solidity
-constructor(string _greeting) public
-```
-
-The constructor of Greeter smart contract
-
-_this will set greeting to `_greeting`_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| _greeting | string | The initial greeting message |
-
-### greet
-
-```solidity
-function greet() public view returns (string)
-```
-
-View function to show greeting message
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | string | Return the greeting message |
-
-### setGreeting
-
-```solidity
-function setGreeting(string _greeting) public
-```
-
-Set greeting to the given `_greeting`
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| _greeting | string | the greeting message to set |
-
-### throwError
-
-```solidity
-function throwError() external pure
-```
-
-experiment function to throw error
-
-## Royalty
-
-### MAX_BPS
-
-```solidity
-uint256 MAX_BPS
-```
-
-_Max BPS_
-
-### royaltyRecipient
-
-```solidity
-address royaltyRecipient
-```
-
-_The recipient of who gets the royalty._
-
-### royaltyBps
-
-```solidity
-uint128 royaltyBps
-```
-
-_The percentage of royalty how much royalty in basis points._
-
-### royaltyInfoForToken
-
-```solidity
-mapping(uint256 => struct IRoyalty.RoyaltyInfo) royaltyInfoForToken
-```
-
-_Token ID => royalty recipient and bps for token_
-
-### isValidBPS
-
-```solidity
-modifier isValidBPS(uint256 _bps)
-```
-
-### constructor
-
-```solidity
-constructor(address _royaltyRecipient, uint128 _royaltyBps) internal
-```
-
-### setDefaultRoyaltyInfo
-
-```solidity
-function setDefaultRoyaltyInfo(address _royaltyRecipient, uint256 _royaltyBps) external virtual
-```
-
-_Lets a module admin update the royalty bps and recipient.
-Can only be called by the module owner._
-
-### setRoyaltyInfoForToken
-
-```solidity
-function setRoyaltyInfoForToken(uint256 _tokenId, address _recipient, uint256 _bps) public virtual
-```
-
-_Lets a module admin set the royalty recipient for a particular token Id._
-
-### getDefaultRoyaltyInfo
-
-```solidity
-function getDefaultRoyaltyInfo() public view virtual returns (address, uint16)
-```
-
-_Returns the platform fee bps and recipient._
-
-### getRoyaltyInfoForToken
-
-```solidity
-function getRoyaltyInfoForToken(uint256 _tokenId) public view virtual returns (address, uint16)
-```
-
-_Returns the royalty recipient for a particular token Id._
-
-### royaltyInfo
-
-```solidity
-function royaltyInfo(uint256 tokenId, uint256 salePrice) external view virtual returns (address receiver, uint256 royaltyAmount)
-```
-
-_See EIP-2981_
-
-### _setDefaultRoyaltyInfo
-
-```solidity
-function _setDefaultRoyaltyInfo(address _royaltyRecipient, uint256 _royaltyBps) internal virtual
-```
-
-_Lets a module admin update the royalty bps and recipient.
-Internal function without access restriction._
-
-### supportsInterface
-
-```solidity
-function supportsInterface(bytes4 interfaceId) public view virtual returns (bool)
-```
-
-## OpenseaComp
-
-### _owner
-
-```solidity
-address _owner
-```
-
-_Owner of the contract (purpose: OpenSea compatibility, etc.)_
-
-### constructor
-
-```solidity
-constructor(address _admin) internal
-```
-
-### owner
-
-```solidity
-function owner() public view virtual returns (address)
-```
-
-_Returns the address of the current owner._
-
-### setOwner
-
-```solidity
-function setOwner(address _newOwner) public virtual
-```
-
-_Lets a module admin set a new owner for the contract. The new owner must be a module admin.
-Can only be called by the module owner._
-
-### _setOwner
-
-```solidity
-function _setOwner(address _newOwner) internal virtual
-```
-
-_Lets a module admin set a new owner for the contract. The new owner must be a module admin.
-Internal function without access restriction._
-
-## ContractRegistry
-
-_ContractRegistry contract definition
-IContractRegistry: ContractRegistry contract interface which contains data structs, event definitions, functions signature
-ERC2771Context: support for meta transactions, useful for onboarding new users mint, list NFT without upfront gas
-Multicall: batch together multiple calls in a single external call
-AccessControlEnumerable: implement role-based access control mechanisms, more robust than Ownable_
-
-### REGISTRAR_ROLE
-
-```solidity
-bytes32 REGISTRAR_ROLE
-```
-
-_Only REGISTRAR_ROLE holders can add/remove deployments of the proxy contract._
-
-### _deployments
-
-```solidity
-mapping(address => struct EnumerableSet.AddressSet) _deployments
-```
-
-_Deployer address => List of deployment addresses_
-
-### constructor
-
-```solidity
-constructor(address _trustForwarder) public
-```
-
-### add
-
-```solidity
-function add(address _deployer, address _deployment) external
-```
-
-Add a deployment for a deployer.
-
-### remove
-
-```solidity
-function remove(address _deployer, address _deployment) external
-```
-
-Remove a deployment for a deployer.
-
-### getDeployments
-
-```solidity
-function getDeployments(address _deployer) external view returns (address[] deployments)
-```
-
-Get all deployments for a deployer.
-
-### count
-
-```solidity
-function count(address _deployer) external view returns (uint256 deploymentCount)
-```
-
-Get the total number of deployments for a deployer.
-
-### _msgSender
-
-```solidity
-function _msgSender() internal view virtual returns (address sender)
-```
-
-### _msgData
-
-```solidity
-function _msgData() internal view virtual returns (bytes)
-```
-
-## IContractRegistry
-
-### Added
-
-```solidity
-event Added(address deployer, address deployment)
-```
-
-### Deleted
-
-```solidity
-event Deleted(address deployer, address deployment)
-```
-
-### add
-
-```solidity
-function add(address _deployer, address _deployment) external
-```
-
-Add a deployment for a deployer.
-
-### remove
-
-```solidity
-function remove(address _deployer, address _deployment) external
-```
-
-Remove a deployment for a deployer.
-
-### getDeployments
-
-```solidity
-function getDeployments(address _deployer) external view returns (address[] deployments)
-```
-
-Get all deployments for a deployer.
-
-### count
-
-```solidity
-function count(address _deployer) external view returns (uint256 deploymentCount)
-```
-
-Get the total number of deployments for a deployer.
-
-## DelayedReveal
-
-### encryptedData
-
-```solidity
-mapping(uint256 => bytes) encryptedData
-```
-
-_Mapping from tokenId of a batch of tokens => to delayed reveal data._
-
-### _getEncryptedData
-
-```solidity
-function _getEncryptedData(uint256 _batchId) internal view returns (bytes data)
-```
-
-_Get the delayed reveal data by a batchId._
-
-### _setEncryptedData
-
-```solidity
-function _setEncryptedData(uint256 _batchId, bytes _encryptedData) internal
-```
-
-_Sets the delayed reveal data for a batchId._
-
-### getRevealURI
-
-```solidity
-function getRevealURI(uint256 _batchId, bytes _key) public view returns (string revealedURI)
-```
-
-@notice             Returns revealed URI for a batch of NFTs.
- @dev                Reveal encrypted base URI for `_batchId` with caller/admin's `_key` used for encryption.
-                     Reverts if there's no encrypted URI for `_batchId`.
-                     See {encryptDecrypt}.
-
- @param _batchId     ID of the batch for which URI is being revealed.
- @param _key         Secure key used by caller/admin for encryption of baseURI.
-
- @return revealedURI Decrypted base URI.
-
-### encryptDecrypt
-
-```solidity
-function encryptDecrypt(bytes data, bytes key) public pure returns (bytes result)
-```
-
-@notice         Encrypt/decrypt data on chain.
- @dev            Encrypt/decrypt given `data` with `key`. Uses inline assembly.
-                 See: https://ethereum.stackexchange.com/questions/69825/decrypt-message-on-chain
-
- @param data     Bytes of data to encrypt/decrypt.
- @param key      Secure key used by caller for encryption/decryption.
-
- @return result  Output after encryption/decryption of given data.
-
-### isEncryptedBatch
-
-```solidity
-function isEncryptedBatch(uint256 _batchId) public view returns (bool)
-```
-
-@notice         Returns whether the relvant batch of NFTs is subject to a delayed reveal.
- @dev            Returns `true` if `_batchId`'s base URI is encrypted.
- @param _batchId ID of a batch of NFTs.
-
-## IDelayedReveal
-
-### TokenURIRevealed
-
-```solidity
-event TokenURIRevealed(uint256 index, string revealedURI)
-```
-
-_Emitted when tokens are revealed._
-
-### reveal
-
-```solidity
-function reveal(uint256 identifier, bytes key) external returns (string revealedURI)
-```
-
-@notice Reveals a batch of delayed reveal NFTs.
-
- @param identifier The ID for the batch of delayed-reveal NFTs to reveal.
-
- @param key        The key with which the base URI for the relevant batch of NFTs was encrypted.
-
-### encryptDecrypt
-
-```solidity
-function encryptDecrypt(bytes data, bytes key) external pure returns (bytes result)
-```
-
-@notice Performs XOR encryption/decryption.
-
- @param data The data to encrypt. In the case of delayed-reveal NFTs, this is the "revealed" state
-             base URI of the relevant batch of NFTs.
-
- @param key  The key with which to encrypt data
-
-## BatchMintMetadata
-
-### batchIds
-
-```solidity
-uint256[] batchIds
-```
-
-_Largest tokenId of each batch of tokens with the same baseURI._
-
-### baseURI
-
-```solidity
-mapping(uint256 => string) baseURI
-```
-
-_Mapping from id of a batch of tokens => to base URI for the respective batch of tokens._
-
-### getBaseURICount
-
-```solidity
-function getBaseURICount() public view returns (uint256)
-```
-
-@notice         Returns the count of batches of NFTs.
- @dev            Each batch of tokens has an in ID and an associated `baseURI`.
-                 See {batchIds}.
-
-### getBatchIdAtIndex
-
-```solidity
-function getBatchIdAtIndex(uint256 _index) public view returns (uint256)
-```
-
-@notice         Returns the ID for the batch of tokens the given tokenId belongs to.
- @dev            See {getBaseURICount}.
- @param _index   ID of a token.
-
-### _getBatchId
-
-```solidity
-function _getBatchId(uint256 _tokenId) internal view returns (uint256 batchId, uint256 index)
-```
-
-_Returns the id for the batch of tokens the given tokenId belongs to._
-
-### _getBaseURI
-
-```solidity
-function _getBaseURI(uint256 _tokenId) internal view returns (string)
-```
-
-_Returns the baseURI for a token. The intended metadata URI for the token is baseURI + tokenId._
-
-### _setBaseURI
-
-```solidity
-function _setBaseURI(uint256 _batchId, string _baseURI) internal
-```
-
-_Sets the base URI for the batch of tokens with the given batchId._
-
-### _batchMintMetadata
-
-```solidity
-function _batchMintMetadata(uint256 _startId, uint256 _amountToMint, string _baseURIForTokens) internal returns (uint256 nextTokenIdToMint, uint256 batchId)
-```
-
-_Mints a batch of tokenIds and associates a common baseURI to all those Ids._
-
-## LazyMint
-
-### nextTokenIdToLazyMint
-
-```solidity
-uint256 nextTokenIdToLazyMint
-```
-
-The tokenId assigned to the next new NFT to be lazy minted.
-
-### lazyMint
-
-```solidity
-function lazyMint(uint256 _amount, string _baseURIForTokens, bytes _extraData) public virtual returns (uint256 batchId)
-```
-
-@notice Lazy mints a given amount of NFTs.
-
- @param _amount           The number of NFTs to lazy mint.
-
- @param _baseURIForTokens The base URI for the 'n' number of NFTs being lazy minted, where the metadata for each
-                         of those NFTs is `${baseURIForTokens}/${tokenId}`.
-
- @param _extraData        Additional bytes data to be used at the discretion of the consumer of the contract.
-
- @return batchId         A unique integer identifier for the batch of NFTs lazy minted together.
-
-### _canLazyMint
-
-```solidity
-function _canLazyMint() internal view virtual returns (bool)
-```
-
-_Returns whether lazy minting can be performed in the given execution context._
-
-## ILazyMint
-
-### TokensLazyMinted
-
-```solidity
-event TokensLazyMinted(uint256 startTokenId, uint256 endTokenId, string baseURI, bytes encryptedBaseURI)
-```
-
-_Emitted when tokens are lazy minted._
-
-### lazyMint
-
-```solidity
-function lazyMint(uint256 _amount, string _baseURIForTokens, bytes _extraData) external returns (uint256 batchId)
-```
-
-@notice Lazy mints a given amount of NFTs.
-
- @param _amount           The number of NFTs to lazy mint.
-
- @param _baseURIForTokens The base URI for the 'n' number of NFTs being lazy minted, where the metadata for each
-                         of those NFTs is `${baseURIForTokens}/${tokenId}`.
-
- @param _extraData        Additional bytes data to be used at the discretion of the consumer of the contract.
-
- @return batchId         A unique integer identifier for the batch of NFTs lazy minted together.
-
 ## ContractFactory
 
 _ContractFactory contract definition
@@ -3778,6 +3207,576 @@ function _msgSender() internal view virtual returns (address sender)
 function _msgData() internal view virtual returns (bytes)
 ```
 
+## ContractRegistry
+
+_ContractRegistry contract definition
+IContractRegistry: ContractRegistry contract interface which contains data structs, event definitions, functions signature
+ERC2771Context: support for meta transactions, useful for onboarding new users mint, list NFT without upfront gas
+Multicall: batch together multiple calls in a single external call
+AccessControlEnumerable: implement role-based access control mechanisms, more robust than Ownable_
+
+### REGISTRAR_ROLE
+
+```solidity
+bytes32 REGISTRAR_ROLE
+```
+
+_Only REGISTRAR_ROLE holders can add/remove deployments of the proxy contract._
+
+### _deployments
+
+```solidity
+mapping(address => struct EnumerableSet.AddressSet) _deployments
+```
+
+_Deployer address => List of deployment addresses_
+
+### constructor
+
+```solidity
+constructor(address _trustForwarder) public
+```
+
+### add
+
+```solidity
+function add(address _deployer, address _deployment) external
+```
+
+Add a deployment for a deployer.
+
+### remove
+
+```solidity
+function remove(address _deployer, address _deployment) external
+```
+
+Remove a deployment for a deployer.
+
+### getDeployments
+
+```solidity
+function getDeployments(address _deployer) external view returns (address[] deployments)
+```
+
+Get all deployments for a deployer.
+
+### count
+
+```solidity
+function count(address _deployer) external view returns (uint256 deploymentCount)
+```
+
+Get the total number of deployments for a deployer.
+
+### _msgSender
+
+```solidity
+function _msgSender() internal view virtual returns (address sender)
+```
+
+### _msgData
+
+```solidity
+function _msgData() internal view virtual returns (bytes)
+```
+
+## GreeterError
+
+```solidity
+error GreeterError()
+```
+
+Greeter error
+
+_this used for testing purpose_
+
+## Greeter
+
+explain to an end user what this does
+
+_explain to a developer any extra details_
+
+### greeting
+
+```solidity
+string greeting
+```
+
+Greeting message
+
+### constructor
+
+```solidity
+constructor(string _greeting) public
+```
+
+The constructor of Greeter smart contract
+
+_this will set greeting to `_greeting`_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _greeting | string | The initial greeting message |
+
+### greet
+
+```solidity
+function greet() public view returns (string)
+```
+
+View function to show greeting message
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | string | Return the greeting message |
+
+### setGreeting
+
+```solidity
+function setGreeting(string _greeting) public
+```
+
+Set greeting to the given `_greeting`
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _greeting | string | the greeting message to set |
+
+### throwError
+
+```solidity
+function throwError() external pure
+```
+
+experiment function to throw error
+
+## BatchMintMetadata
+
+### batchIds
+
+```solidity
+uint256[] batchIds
+```
+
+_Largest tokenId of each batch of tokens with the same baseURI._
+
+### baseURI
+
+```solidity
+mapping(uint256 => string) baseURI
+```
+
+_Mapping from id of a batch of tokens => to base URI for the respective batch of tokens._
+
+### getBaseURICount
+
+```solidity
+function getBaseURICount() public view returns (uint256)
+```
+
+@notice         Returns the count of batches of NFTs.
+ @dev            Each batch of tokens has an in ID and an associated `baseURI`.
+                 See {batchIds}.
+
+### getBatchIdAtIndex
+
+```solidity
+function getBatchIdAtIndex(uint256 _index) public view returns (uint256)
+```
+
+@notice         Returns the ID for the batch of tokens the given tokenId belongs to.
+ @dev            See {getBaseURICount}.
+ @param _index   ID of a token.
+
+### _getBatchId
+
+```solidity
+function _getBatchId(uint256 _tokenId) internal view returns (uint256 batchId, uint256 index)
+```
+
+_Returns the id for the batch of tokens the given tokenId belongs to._
+
+### _getBaseURI
+
+```solidity
+function _getBaseURI(uint256 _tokenId) internal view returns (string)
+```
+
+_Returns the baseURI for a token. The intended metadata URI for the token is baseURI + tokenId._
+
+### _setBaseURI
+
+```solidity
+function _setBaseURI(uint256 _batchId, string _baseURI) internal
+```
+
+_Sets the base URI for the batch of tokens with the given batchId._
+
+### _batchMintMetadata
+
+```solidity
+function _batchMintMetadata(uint256 _startId, uint256 _amountToMint, string _baseURIForTokens) internal returns (uint256 nextTokenIdToMint, uint256 batchId)
+```
+
+_Mints a batch of tokenIds and associates a common baseURI to all those Ids._
+
+## DelayedReveal
+
+### encryptedData
+
+```solidity
+mapping(uint256 => bytes) encryptedData
+```
+
+_Mapping from tokenId of a batch of tokens => to delayed reveal data._
+
+### _getEncryptedData
+
+```solidity
+function _getEncryptedData(uint256 _batchId) internal view returns (bytes data)
+```
+
+_Get the delayed reveal data by a batchId._
+
+### _setEncryptedData
+
+```solidity
+function _setEncryptedData(uint256 _batchId, bytes _encryptedData) internal
+```
+
+_Sets the delayed reveal data for a batchId._
+
+### getRevealURI
+
+```solidity
+function getRevealURI(uint256 _batchId, bytes _key) public view returns (string revealedURI)
+```
+
+@notice             Returns revealed URI for a batch of NFTs.
+ @dev                Reveal encrypted base URI for `_batchId` with caller/admin's `_key` used for encryption.
+                     Reverts if there's no encrypted URI for `_batchId`.
+                     See {encryptDecrypt}.
+
+ @param _batchId     ID of the batch for which URI is being revealed.
+ @param _key         Secure key used by caller/admin for encryption of baseURI.
+
+ @return revealedURI Decrypted base URI.
+
+### encryptDecrypt
+
+```solidity
+function encryptDecrypt(bytes data, bytes key) public pure returns (bytes result)
+```
+
+@notice         Encrypt/decrypt data on chain.
+ @dev            Encrypt/decrypt given `data` with `key`. Uses inline assembly.
+                 See: https://ethereum.stackexchange.com/questions/69825/decrypt-message-on-chain
+
+ @param data     Bytes of data to encrypt/decrypt.
+ @param key      Secure key used by caller for encryption/decryption.
+
+ @return result  Output after encryption/decryption of given data.
+
+### isEncryptedBatch
+
+```solidity
+function isEncryptedBatch(uint256 _batchId) public view returns (bool)
+```
+
+@notice         Returns whether the relvant batch of NFTs is subject to a delayed reveal.
+ @dev            Returns `true` if `_batchId`'s base URI is encrypted.
+ @param _batchId ID of a batch of NFTs.
+
+## LazyMint
+
+### nextTokenIdToLazyMint
+
+```solidity
+uint256 nextTokenIdToLazyMint
+```
+
+The tokenId assigned to the next new NFT to be lazy minted.
+
+### lazyMint
+
+```solidity
+function lazyMint(uint256 _amount, string _baseURIForTokens, bytes _extraData) public virtual returns (uint256 batchId)
+```
+
+@notice Lazy mints a given amount of NFTs.
+
+ @param _amount           The number of NFTs to lazy mint.
+
+ @param _baseURIForTokens The base URI for the 'n' number of NFTs being lazy minted, where the metadata for each
+                         of those NFTs is `${baseURIForTokens}/${tokenId}`.
+
+ @param _extraData        Additional bytes data to be used at the discretion of the consumer of the contract.
+
+ @return batchId         A unique integer identifier for the batch of NFTs lazy minted together.
+
+### _canLazyMint
+
+```solidity
+function _canLazyMint() internal view virtual returns (bool)
+```
+
+_Returns whether lazy minting can be performed in the given execution context._
+
+## OpenseaComp
+
+### _owner
+
+```solidity
+address _owner
+```
+
+_Owner of the contract (purpose: OpenSea compatibility, etc.)_
+
+### constructor
+
+```solidity
+constructor(address _admin) internal
+```
+
+### owner
+
+```solidity
+function owner() public view virtual returns (address)
+```
+
+_Returns the address of the current owner._
+
+### setOwner
+
+```solidity
+function setOwner(address _newOwner) public virtual
+```
+
+_Lets a module admin set a new owner for the contract. The new owner must be a module admin.
+Can only be called by the module owner._
+
+### _setOwner
+
+```solidity
+function _setOwner(address _newOwner) internal virtual
+```
+
+_Lets a module admin set a new owner for the contract. The new owner must be a module admin.
+Internal function without access restriction._
+
+## PrimarySale
+
+### _primarySaleRecipient
+
+```solidity
+address _primarySaleRecipient
+```
+
+_The adress that receives all primary sales value._
+
+### constructor
+
+```solidity
+constructor(address _saleRecipient) internal
+```
+
+### primarySaleRecipient
+
+```solidity
+function primarySaleRecipient() public view virtual returns (address)
+```
+
+_Returns the address of the primary sale recipient._
+
+### setPrimarySaleRecipient
+
+```solidity
+function setPrimarySaleRecipient(address _saleRecipient) public virtual
+```
+
+_Lets a module admin set the default recipient of all primary sales.
+Can only be called by the module owner._
+
+### _setPrimarySaleRecipient
+
+```solidity
+function _setPrimarySaleRecipient(address _saleRecipient) internal virtual
+```
+
+_Lets a module admin set the default recipient of all primary sales.
+Internal function without access restriction._
+
+## Royalty
+
+### MAX_BPS
+
+```solidity
+uint256 MAX_BPS
+```
+
+_Max BPS_
+
+### royaltyRecipient
+
+```solidity
+address royaltyRecipient
+```
+
+_The recipient of who gets the royalty._
+
+### royaltyBps
+
+```solidity
+uint128 royaltyBps
+```
+
+_The percentage of royalty how much royalty in basis points._
+
+### royaltyInfoForToken
+
+```solidity
+mapping(uint256 => struct IRoyalty.RoyaltyInfo) royaltyInfoForToken
+```
+
+_Token ID => royalty recipient and bps for token_
+
+### isValidBPS
+
+```solidity
+modifier isValidBPS(uint256 _bps)
+```
+
+### constructor
+
+```solidity
+constructor(address _royaltyRecipient, uint128 _royaltyBps) internal
+```
+
+### setDefaultRoyaltyInfo
+
+```solidity
+function setDefaultRoyaltyInfo(address _royaltyRecipient, uint256 _royaltyBps) external virtual
+```
+
+_Lets a module admin update the royalty bps and recipient.
+Can only be called by the module owner._
+
+### setRoyaltyInfoForToken
+
+```solidity
+function setRoyaltyInfoForToken(uint256 _tokenId, address _recipient, uint256 _bps) public virtual
+```
+
+_Lets a module admin set the royalty recipient for a particular token Id._
+
+### getDefaultRoyaltyInfo
+
+```solidity
+function getDefaultRoyaltyInfo() public view virtual returns (address, uint16)
+```
+
+_Returns the platform fee bps and recipient._
+
+### getRoyaltyInfoForToken
+
+```solidity
+function getRoyaltyInfoForToken(uint256 _tokenId) public view virtual returns (address, uint16)
+```
+
+_Returns the royalty recipient for a particular token Id._
+
+### royaltyInfo
+
+```solidity
+function royaltyInfo(uint256 tokenId, uint256 salePrice) external view virtual returns (address receiver, uint256 royaltyAmount)
+```
+
+_See EIP-2981_
+
+### _setDefaultRoyaltyInfo
+
+```solidity
+function _setDefaultRoyaltyInfo(address _royaltyRecipient, uint256 _royaltyBps) internal virtual
+```
+
+_Lets a module admin update the royalty bps and recipient.
+Internal function without access restriction._
+
+### supportsInterface
+
+```solidity
+function supportsInterface(bytes4 interfaceId) public view virtual returns (bool)
+```
+
+## IDelayedReveal
+
+### TokenURIRevealed
+
+```solidity
+event TokenURIRevealed(uint256 index, string revealedURI)
+```
+
+_Emitted when tokens are revealed._
+
+### reveal
+
+```solidity
+function reveal(uint256 identifier, bytes key) external returns (string revealedURI)
+```
+
+@notice Reveals a batch of delayed reveal NFTs.
+
+ @param identifier The ID for the batch of delayed-reveal NFTs to reveal.
+
+ @param key        The key with which the base URI for the relevant batch of NFTs was encrypted.
+
+### encryptDecrypt
+
+```solidity
+function encryptDecrypt(bytes data, bytes key) external pure returns (bytes result)
+```
+
+@notice Performs XOR encryption/decryption.
+
+ @param data The data to encrypt. In the case of delayed-reveal NFTs, this is the "revealed" state
+             base URI of the relevant batch of NFTs.
+
+ @param key  The key with which to encrypt data
+
+## ILazyMint
+
+### TokensLazyMinted
+
+```solidity
+event TokensLazyMinted(uint256 startTokenId, uint256 endTokenId, string baseURI, bytes encryptedBaseURI)
+```
+
+_Emitted when tokens are lazy minted._
+
+### lazyMint
+
+```solidity
+function lazyMint(uint256 _amount, string _baseURIForTokens, bytes _extraData) external returns (uint256 batchId)
+```
+
+@notice Lazy mints a given amount of NFTs.
+
+ @param _amount           The number of NFTs to lazy mint.
+
+ @param _baseURIForTokens The base URI for the 'n' number of NFTs being lazy minted, where the metadata for each
+                         of those NFTs is `${baseURIForTokens}/${tokenId}`.
+
+ @param _extraData        Additional bytes data to be used at the discretion of the consumer of the contract.
+
+ @return batchId         A unique integer identifier for the batch of NFTs lazy minted together.
+
 ## IContractFactory
 
 ### ProxyDeployed
@@ -3857,47 +3856,51 @@ function getImplementation(bytes32 _type, uint256 _version) external view return
 function getLatestImplementation(bytes32 _type) external view returns (address)
 ```
 
-## PrimarySale
+## IContractRegistry
 
-### _primarySaleRecipient
-
-```solidity
-address _primarySaleRecipient
-```
-
-_The adress that receives all primary sales value._
-
-### constructor
+### Added
 
 ```solidity
-constructor(address _saleRecipient) internal
+event Added(address deployer, address deployment)
 ```
 
-### primarySaleRecipient
+### Deleted
 
 ```solidity
-function primarySaleRecipient() public view virtual returns (address)
+event Deleted(address deployer, address deployment)
 ```
 
-_Returns the address of the primary sale recipient._
-
-### setPrimarySaleRecipient
+### add
 
 ```solidity
-function setPrimarySaleRecipient(address _saleRecipient) public virtual
+function add(address _deployer, address _deployment) external
 ```
 
-_Lets a module admin set the default recipient of all primary sales.
-Can only be called by the module owner._
+Add a deployment for a deployer.
 
-### _setPrimarySaleRecipient
+### remove
 
 ```solidity
-function _setPrimarySaleRecipient(address _saleRecipient) internal virtual
+function remove(address _deployer, address _deployment) external
 ```
 
-_Lets a module admin set the default recipient of all primary sales.
-Internal function without access restriction._
+Remove a deployment for a deployer.
+
+### getDeployments
+
+```solidity
+function getDeployments(address _deployer) external view returns (address[] deployments)
+```
+
+Get all deployments for a deployer.
+
+### count
+
+```solidity
+function count(address _deployer) external view returns (uint256 deploymentCount)
+```
+
+Get the total number of deployments for a deployer.
 
 ## MinimalForwarderMock
 

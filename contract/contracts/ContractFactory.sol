@@ -49,6 +49,7 @@ contract ContractFactory is IContractFactory, ERC2771Context, Multicall, AccessC
     //////////////////////////////////////////////////////////////*/
 
     constructor(address _trustForwarder, address _registry) ERC2771Context(_trustForwarder) {
+        require(_registry != address(0), "INVALID");
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(FACTORY_ROLE, _msgSender());
 

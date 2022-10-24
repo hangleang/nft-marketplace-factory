@@ -6,10 +6,10 @@ import { ContractFactory, ContractRegistry, ERC721Token, Greeter } from "../type
 import { Contract } from "ethers";
 const { utils } = ethers;
 
-const ERC721TOKEN_HASH: string = utils.formatBytes32String("ERC721Token");
-const MARKETPLACE_HASH: string = utils.formatBytes32String("Marketplace");
+const ERC721TOKEN_TYPE: string = utils.formatBytes32String("ERC721Token");
+const MARKETPLACE_TYPE: string = utils.formatBytes32String("Marketplace");
 
-describe("Factory testcase", () => {
+describe("Factory", () => {
   let platformOwner: SignerWithAddress;
   let creator: SignerWithAddress;
   let saleRecipient: SignerWithAddress;
@@ -22,9 +22,9 @@ describe("Factory testcase", () => {
   before(async () => {
     [platformOwner, creator, saleRecipient, royaltyRecipient] = await ethers.getSigners();
     await deployments.fixture(["ContractFactory", "Impls"]);
-    rigistry = await ethers.getContract("ContractRegistry");
-    factory = await ethers.getContract("ContractFactory");
-    erc721TokenImpl = await ethers.getContract("ERC721Token");
+    rigistry = await ethers.getContractAt("ContractRegistry", (await deployments.get("ContractRegistry")).address);
+    factory = await ethers.getContractAt("ContractFactory", (await deployments.get("ContractFactory")).address);
+    erc721TokenImpl = await ethers.getContractAt("ERC721Token", (await deployments.get("ERC721Token")).address);
 
     const initParams: unknown[] = [
       creator.address,
@@ -45,18 +45,18 @@ describe("Factory testcase", () => {
   });
 
   it("check implementation in factory contract", async () => {
-    const implAddress = await factory.getLatestImplementation(ERC721TOKEN_HASH);
+    const implAddress = await factory.getLatestImplementation(ERC721TOKEN_TYPE);
     expect(implAddress).to.equal(erc721TokenImpl.address);
   });
 
   it("should run deployProxy success with given contract type", async () => {
-    const deployTxn = factory.connect(creator).deployProxy(ERC721TOKEN_HASH, encodedInitData);
+    const deployTxn = factory.connect(creator).deployProxy(ERC721TOKEN_TYPE, encodedInitData);
     await expect(deployTxn).to.emit(factory, "ProxyDeployed").to.emit(rigistry, "Added");
   });
 
   it("should run deployProxyDeterministic success with given params", async () => {
     const salt = ethers.utils.formatBytes32String((await rigistry.count(creator.address)).toString());
-    const deployTxn = factory.connect(creator).deployProxyDeterministic(ERC721TOKEN_HASH, encodedInitData, salt);
+    const deployTxn = factory.connect(creator).deployProxyDeterministic(ERC721TOKEN_TYPE, encodedInitData, salt);
     await expect(deployTxn).to.emit(factory, "ProxyDeployed").to.emit(rigistry, "Added");
   });
 
@@ -84,7 +84,7 @@ describe("Factory testcase", () => {
 
       await expect(factory.connect(platformOwner).addImplementation(marketplace.address))
         .to.emit(factory, "ImplementationAdded")
-        .withArgs(marketplace.address, MARKETPLACE_HASH, version);
+        .withArgs(marketplace.address, MARKETPLACE_TYPE, version);
     });
 
     it("should not able to add or approve new implemetation if signer is not the admin or FACTORY_ROLE", async () => {
@@ -100,7 +100,7 @@ describe("Factory testcase", () => {
 
     before(async () => {
       await deployments.fixture("Greeter");
-      greeter = await ethers.getContract("Greeter");
+      greeter = await ethers.getContractAt("Greeter", (await deployments.get("Greeter")).address);
     });
 
     it("should not able to add new implementation if it is not compatible", async () => {

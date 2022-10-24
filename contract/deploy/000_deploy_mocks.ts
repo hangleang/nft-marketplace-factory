@@ -14,6 +14,11 @@ const func: DeployFunction = async ({ getNamedAccounts, deployments, network }) 
       log: true,
       autoMine: true,
     });
+    await deploy("ERC20Mock", {
+      from: deployer,
+      log: true,
+      autoMine: true,
+    });
     await deploy("MinimalForwarderMock", {
       from: deployer,
       log: true,
