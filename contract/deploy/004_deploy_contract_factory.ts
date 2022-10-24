@@ -21,7 +21,8 @@ const func: DeployFunction = async ({ getNamedAccounts, deployments, network }) 
     args = [TRUST_FORWARDERS[network.name]];
   }
 
-  const registry: ContractRegistry = await ethers.getContract("ContractRegistry");
+  const registryAddress = (await deployments.get("ContractRegistry")).address;
+  const registry: ContractRegistry = await ethers.getContractAt("ContractRegistry", registryAddress);
   args = [...args, registry.address];
 
   // const isRegistryAdmin: boolean = await registry.hasRole(
@@ -45,7 +46,7 @@ const func: DeployFunction = async ({ getNamedAccounts, deployments, network }) 
     ethers.utils.solidityKeccak256(["string"], ["REGISTRAR_ROLE"]),
     factory.address,
   );
-  console.log("Granting REGISTRAR_ROLE to factory on registry at tx: ", grantRoleTx.hash);
+  log("Granting REGISTRAR_ROLE to factory on registry at tx: ", grantRoleTx.hash);
   await grantRoleTx.wait();
 
   // Verify the deployment

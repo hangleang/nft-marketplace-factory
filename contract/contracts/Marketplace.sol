@@ -54,24 +54,24 @@ contract Marketplace is
 
     bytes32 private constant CONTRACT_TYPE = bytes32("Marketplace");
     uint256 private constant VERSION = 1;
-    
-    /// @dev Contract level metadata.
-    string public contractURI;
 
     /// @dev Only lister role holders can create listings, when listings are restricted by lister address.
     bytes32 private constant LISTER_ROLE = keccak256("LISTER_ROLE");
     /// @dev Only assets from NFT contracts with asset role can be listed, when listings are restricted by asset address.
     bytes32 private constant ASSET_ROLE = keccak256("ASSET_ROLE");
+    
+    /// @dev The max bps of the contract. So, 10_000 == 100 %
+    uint16 private constant MAX_BPS = 10_000;
 
     /// @dev The address of the native token wrapper contract.
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     address private immutable nativeTokenWrapper;
+    
+    /// @dev Contract level metadata.
+    string public contractURI;
 
     /// @dev Total number of listings ever created in the marketplace.
     uint256 public totalListings;
-
-    /// @dev The max bps of the contract. So, 10_000 == 100 %
-    uint16 private constant MAX_BPS = 10_000;
 
     /// @dev
     /**

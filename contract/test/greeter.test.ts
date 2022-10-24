@@ -1,12 +1,17 @@
 import { expect } from "chai";
 import { deployments, ethers } from "hardhat";
 
-import { Greeter } from "../types/Greeter";
+import { Greeter } from "../types";
 
 describe("Greeter testcase", () => {
-  it("should return the new greeting once it's changed", async () => {
+  let greeter: Greeter;
+
+  before(async () => {
     await deployments.fixture(["Greeter"]);
-    const greeter: Greeter = await ethers.getContract("Greeter");
+    greeter = await ethers.getContractAt("Greeter", (await deployments.get("Greeter")).address);
+  });
+
+  it("should return the new greeting once it's changed", async () => {
     expect(await greeter.greet()).to.equal("Hello, World!");
 
     await greeter.setGreeting("Bonjour, le monde!");
@@ -14,8 +19,6 @@ describe("Greeter testcase", () => {
   });
 
   it("should throw error", async () => {
-    await deployments.fixture(["Greeter"]);
-    const greeter: Greeter = await ethers.getContract("Greeter");
     await expect(greeter.throwError()).revertedWithCustomError(greeter, "GreeterError");
   });
 });

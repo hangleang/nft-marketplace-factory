@@ -83,8 +83,8 @@ contract ERC1155Token is
     /// @dev Only MINTER_ROLE holders can sign off on `MintRequest`s.
     bytes32 private constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-    /// @dev Max BPS
-    uint256 private constant MAX_BPS = 10_000;
+    /// @dev The max bps of the contract. So, 10_000 == 100 %
+    uint16 private constant MAX_BPS = 10_000;
 
     /// @dev The next token ID of the NFT to mint.
     uint256 public nextTokenIdToMint;
@@ -237,7 +237,7 @@ contract ERC1155Token is
         }
 
         if (_req.royaltyRecipient != address(0)) {
-            setRoyaltyInfoForToken(tokenIdToMint, _req.royaltyRecipient, _req.royaltyBps);
+            _setRoyaltyInfoForToken(tokenIdToMint, _req.royaltyRecipient, _req.royaltyBps);
         }
 
         _mintTo(receiver, _req.uri, tokenIdToMint, _req.quantity);
