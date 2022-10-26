@@ -47,13 +47,13 @@ interface IERC1155Drop is IMetadata, IERC1155Upgradeable, IClaimCondition {
      *  @notice Lets an account claim a given quantity of NFTs.
      *
      *  @param receiver                       The receiver of the NFTs to claim.
-     *  @param tokenId                       The unique ID of the token to claim.
+     *  @param tokenId                        The unique ID of the token to claim.
      *  @param quantity                       The quantity of NFTs to claim.
      *  @param currency                       The currency in which to pay for the claim.
      *  @param pricePerToken                  The price per token to pay for the claim.
      *  @param proofs                         The proof of the claimer's inclusion in the merkle root allowlist
      *                                        of the claim conditions that apply.
-     *  @param proofMaxQuantityPerTransaction (Optional) The maximum number of NFTs an address included in an
+     *  @param proofMaxAllowance   (Optional) The maximum number of NFTs an address included in an
      *                                        allowlist can claim.
      */
     function claim(
@@ -63,7 +63,7 @@ interface IERC1155Drop is IMetadata, IERC1155Upgradeable, IClaimCondition {
         address currency,
         uint256 pricePerToken,
         bytes32[] calldata proofs,
-        uint256 proofMaxQuantityPerTransaction
+        uint256 proofMaxAllowance
     ) external payable;
 
     /**
