@@ -260,7 +260,7 @@ contract ERC721Drop is
         address _currency,
         uint256 _pricePerToken,
         bytes32[] calldata _proofs,
-        uint256 _proofMaxQuantityPerTransaction
+        uint256 _proofMaxAllowance
     ) external override payable nonReentrant {
         require(isTrustedForwarder(msg.sender) || _msgSender() == tx.origin, "BOT_OUT!");
 
@@ -282,13 +282,13 @@ contract ERC721Drop is
             _msgSender(),
             _quantity,
             _proofs,
-            _proofMaxQuantityPerTransaction
+            _proofMaxAllowance
         );
 
         // Verify claim validity. If not valid, revert.
-        // when there's allowlist present --> verifyClaimMerkleProof will verify the _proofMaxQuantityPerTransaction value with hashed leaf in the allowlist
+        // when there's allowlist present --> verifyClaimMerkleProof will verify the _proofMaxAllowance value with hashed leaf in the allowlist
         // when there's no allowlist, this check is true --> verifyClaim will check for _quantity being less/equal than the limit
-        bool toVerifyMaxQuantityPerTransaction = _proofMaxQuantityPerTransaction == 0 ||
+        bool toVerifyMaxQuantityPerTransaction = _proofMaxAllowance == 0 ||
             claimCondition.phases[activeConditionId].merkleRoot == bytes32(0);
         verifyClaim(
             activeConditionId,
@@ -299,7 +299,7 @@ contract ERC721Drop is
             toVerifyMaxQuantityPerTransaction
         );
 
-        if (validMerkleProof && _proofMaxQuantityPerTransaction > 0) {
+        if (validMerkleProof && _proofMaxAllowance > 0) {
             /**
              *  Mark the claimer's use of their position in the allowlist. A spot in an allowlist
              *  can be used only once.
@@ -379,6 +379,34 @@ contract ERC721Drop is
         }
     }
 
+    /// @dev Checks whether a claimer meets the claim condition's allowlist criteria.
+    function verifyClaimMerkleProof(
+        uint256 _conditionId,
+        address _claimer,
+        uint256 _quantity,
+        bytes32[] calldata _proofs,
+        uint256 _proofMaxAllowance
+    ) public view returns (bool validMerkleProof, uint256 merkleProofIndex) {
+        ClaimCondition memory currentClaimPhase = claimCondition.phases[_conditionId];
+
+        if (currentClaimPhase.merkleRoot != bytes32(0)) {
+            (validMerkleProof, merkleProofIndex) = MerkleProof.verify(
+                _proofs,
+                currentClaimPhase.merkleRoot,
+                keccak256(abi.encodePacked(_claimer, _proofMaxAllowance))
+            );
+            require(validMerkleProof, "!PROOF");
+            require(
+                !claimCondition.limitMerkleProofClaim[_conditionId].get(uint256(uint160(_claimer))),
+                "CLAIMED"
+            );
+            require(
+                _proofMaxAllowance == 0 || _quantity <= _proofMaxAllowance,
+                "!PROOF_ALLOWANCE"
+            );
+        }
+    }
+
     /// @dev Checks a request to claim NFTs against the active claim condition's criteria.
     function verifyClaim(
         uint256 _conditionId,
@@ -392,7 +420,7 @@ contract ERC721Drop is
 
         require(
             _currency == currentClaimPhase.currency && _pricePerToken == currentClaimPhase.pricePerToken,
-            "!CRYPTO"
+            "!CURRENCY"
         );
 
         // If we're checking for an allowlist quantity restriction, ignore the general quantity restriction.
@@ -409,39 +437,11 @@ contract ERC721Drop is
         require(maxTotalSupply == 0 || nextTokenIdToClaim + _quantity <= maxTotalSupply, ">MAX_SUP");
         require(
             maxWalletClaimCount == 0 || walletClaimCount[_claimer] + _quantity <= maxWalletClaimCount,
-            ">LIMIT"
+            ">MAX_COUNT"
         );
 
         (uint256 lastClaimTimestamp, uint256 nextValidClaimTimestamp) = getClaimTimestamp(_conditionId, _claimer);
         require(lastClaimTimestamp == 0 || block.timestamp >= nextValidClaimTimestamp, "!TIME");
-    }
-
-    /// @dev Checks whether a claimer meets the claim condition's allowlist criteria.
-    function verifyClaimMerkleProof(
-        uint256 _conditionId,
-        address _claimer,
-        uint256 _quantity,
-        bytes32[] calldata _proofs,
-        uint256 _proofMaxQuantityPerTransaction
-    ) public view returns (bool validMerkleProof, uint256 merkleProofIndex) {
-        ClaimCondition memory currentClaimPhase = claimCondition.phases[_conditionId];
-
-        if (currentClaimPhase.merkleRoot != bytes32(0)) {
-            (validMerkleProof, merkleProofIndex) = MerkleProof.verify(
-                _proofs,
-                currentClaimPhase.merkleRoot,
-                keccak256(abi.encodePacked(_claimer, _proofMaxQuantityPerTransaction))
-            );
-            require(validMerkleProof, "!PROOF");
-            require(
-                !claimCondition.limitMerkleProofClaim[_conditionId].get(uint256(uint160(_claimer))),
-                "CLAIMED"
-            );
-            require(
-                _proofMaxQuantityPerTransaction == 0 || _quantity <= _proofMaxQuantityPerTransaction,
-                "!QTY"
-            );
-        }
     }
 
     /*///////////////////////////////////////////////////////////////

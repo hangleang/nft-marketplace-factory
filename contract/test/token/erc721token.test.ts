@@ -4,7 +4,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { TypedDataDomain, TypedDataField } from "ethers";
 import { mine } from "@nomicfoundation/hardhat-network-helpers";
 
-import { ContractFactory, ERC721Token, IERC721Token, ERC20Mock } from "../../types";
+import { ERC721Token, IERC721Token, ERC20Mock } from "../../types";
 import ERC721TOKEN_ABI from "../../artifacts/contracts/tokens/ERC721Token.sol/ERC721Token.json";
 import { formatTypedDataField } from "../utils";
 const { utils } = ethers;
@@ -17,7 +17,7 @@ const NATIVE_TOKEN: string = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
 // TOKEN
 const NAME: string = "Demo NFT Token";
-const SYMBOL: string = "DNF";
+const SYMBOL: string = "DNT";
 const URI: string = "ipfs://random-string";
 
 // FEE
@@ -40,14 +40,12 @@ describe("ERC721Token", async () => {
   let royaltyRecipient: SignerWithAddress;
   let recipient: SignerWithAddress;
   let operator: SignerWithAddress;
-  let factory: ContractFactory;
   let erc721Token: ERC721Token;
 
   before(async () => {
     [platformOwner, creator, saleRecipient, royaltyRecipient, recipient, operator] = await ethers.getSigners();
     await deployments.fixture(["ContractFactory", "Impls"]);
-    const factoryAddress = (await deployments.get("ContractFactory")).address;
-    factory = await ethers.getContractAt("ContractFactory", factoryAddress);
+    const factory = await ethers.getContractAt("ContractFactory", (await deployments.get("ContractFactory")).address);
 
     const initParams: unknown[] = [
       creator.address,
@@ -69,6 +67,27 @@ describe("ERC721Token", async () => {
     const proxyDeployedEvent = receipt.events?.find(x => x.event == "ProxyDeployed");
     const proxyAddress = proxyDeployedEvent?.args?.proxy;
     erc721Token = await ethers.getContractAt("ERC721Token", proxyAddress);
+  });
+
+  it("checking....", async () => {
+    expect(await erc721Token.contractType()).to.eq(CONTRACT_TYPE);
+    expect(await erc721Token.contractVersion()).to.eq(CONTRACT_VERSION);
+    expect(await erc721Token.contractURI()).to.eq(URI);
+    expect(await erc721Token.name()).to.eq(NAME);
+    expect(await erc721Token.symbol()).to.eq(SYMBOL);
+    expect(await erc721Token.primarySaleRecipient()).to.eq(saleRecipient.address);
+    const platformInfo = await erc721Token.getPlatformFeeInfo();
+    expect(platformInfo[0]).to.eq(platformOwner.address);
+    expect(platformInfo[1]).to.eq(PLATFORM_FEE);
+    const royaltyInfo = await erc721Token.getDefaultRoyaltyInfo();
+    expect(royaltyInfo[0]).to.eq(royaltyRecipient.address);
+    expect(royaltyInfo[1]).to.eq(ROYALTY_FEE);
+    // expect(await erc721Token.getDefaultRoyaltyInfo()).to.eq([royaltyRecipient.address, ROYALTY_FEE]);
+
+    // CHECK ACCESS CONTROL
+    expect(await erc721Token.hasRole(ADMIN_ROLE, creator.address)).to.true;
+    expect(await erc721Token.hasRole(MINTER_ROLE, creator.address)).to.true;
+    expect(await erc721Token.hasRole(TRANSFER_ROLE, ADDRRESS_ZERO)).to.true;
   });
 
   describe("ERC721Token: minting", async () => {
@@ -336,27 +355,6 @@ describe("ERC721Token", async () => {
   });
 
   describe("ERC721Token: contract metadata & extensions", async () => {
-    it("checking....", async () => {
-      expect(await erc721Token.contractType()).to.eq(CONTRACT_TYPE);
-      expect(await erc721Token.contractVersion()).to.eq(CONTRACT_VERSION);
-      expect(await erc721Token.contractURI()).to.eq(URI);
-      expect(await erc721Token.name()).to.eq(NAME);
-      expect(await erc721Token.symbol()).to.eq(SYMBOL);
-      expect(await erc721Token.primarySaleRecipient()).to.eq(saleRecipient.address);
-      const platformInfo = await erc721Token.getPlatformFeeInfo();
-      expect(platformInfo[0]).to.eq(platformOwner.address);
-      expect(platformInfo[1]).to.eq(PLATFORM_FEE);
-      const royaltyInfo = await erc721Token.getDefaultRoyaltyInfo();
-      expect(royaltyInfo[0]).to.eq(royaltyRecipient.address);
-      expect(royaltyInfo[1]).to.eq(ROYALTY_FEE);
-      // expect(await erc721Token.getDefaultRoyaltyInfo()).to.eq([royaltyRecipient.address, ROYALTY_FEE]);
-
-      // CHECK ACCESS CONTROL
-      expect(await erc721Token.hasRole(ADMIN_ROLE, creator.address)).to.true;
-      expect(await erc721Token.hasRole(MINTER_ROLE, creator.address)).to.true;
-      expect(await erc721Token.hasRole(TRANSFER_ROLE, ADDRRESS_ZERO)).to.true;
-    });
-
     it("should be able to set contractURI with ADMIN_ROLE", async () => {
       await erc721Token.connect(creator).setContractURI(URI);
       expect(await erc721Token.contractURI()).to.eq(URI);
