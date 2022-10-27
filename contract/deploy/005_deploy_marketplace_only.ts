@@ -9,6 +9,10 @@ import {
 } from "../helper-config";
 import { verify } from "../helper-functions";
 
+const ONE_BPS: number = 100; // 1% in BPS unit
+const CONTRACT_URI: string = "ipfs://random-string"; // replace below params when production
+const PLATFORM_FEE: number = ONE_BPS * 5; // 5% of platformFee
+
 const func: DeployFunction = async ({ getNamedAccounts, deployments, network, upgrades }) => {
   const { log } = deployments;
   const { deployer, _feeCollector } = await getNamedAccounts();
@@ -18,7 +22,7 @@ const func: DeployFunction = async ({ getNamedAccounts, deployments, network, up
   let constructorArgs: string[];
   let args: unknown[] = [
     deployer, // admin address
-    "", // contract URI
+    CONTRACT_URI, // contract URI
   ];
   if (isDev) {
     // get mock contract address
@@ -40,8 +44,8 @@ const func: DeployFunction = async ({ getNamedAccounts, deployments, network, up
 
   args = [
     ...args,
-    deployer, // fee recipient address
-    500, // platform fees percentage 500 == %5.0
+    deployer, // fee recipient address, change to feeCollector when production
+    PLATFORM_FEE, // platform fees percentage 500 == %5.0
   ];
 
   // the following will only deploy "Greeter" if the contract was never deployed or if the code changed since last deployment
