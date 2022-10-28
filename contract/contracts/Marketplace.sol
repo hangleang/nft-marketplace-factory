@@ -63,6 +63,9 @@ contract Marketplace is
     /// @dev The max bps of the contract. So, 10_000 == 100 %
     uint16 private constant MAX_BPS = 10_000;
 
+    /// @dev The time buffer start listing in the past
+    uint256 private constant STARTTIME_BUFFER = 1 hours;
+
     /// @dev The address of the native token wrapper contract.
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     address private immutable nativeTokenWrapper;
@@ -233,7 +236,7 @@ contract Marketplace is
         uint256 startTime = _params.startTime;
         if (startTime < block.timestamp) {
             // do not allow listing to start in the past (1 hour buffer)
-            require(block.timestamp - startTime < 1 hours, "ST");
+            require(block.timestamp - startTime < STARTTIME_BUFFER, ">ST_BUFFER");
             startTime = block.timestamp;
         }
 
@@ -291,12 +294,12 @@ contract Marketplace is
         // Can only edit auction listing before it starts.
         if (isAuction) {
             require(block.timestamp < targetListing.startTime, "STARTED");
-            require(_buyoutPricePerToken >= _reservePricePerToken, "RESERVE");
+            require(_buyoutPricePerToken >= _reservePricePerToken, ">BUYOUT");
         }
 
         if (_startTime < block.timestamp) {
             // do not allow listing to start in the past (1 hour buffer)
-            require(block.timestamp - _startTime < 1 hours, "ST");
+            require(block.timestamp - _startTime < STARTTIME_BUFFER, ">ST_BUFFER");
             _startTime = block.timestamp;
         }
 
@@ -375,7 +378,7 @@ contract Marketplace is
                     Direct lisitngs sales logic
     //////////////////////////////////////////////////////////////*/
 
-    /// @dev Lets an account buy a given quantity of tokens from a listing.
+    /// @dev Lets an account buy a given quantity of tokens from a direct listing.
     function buy(
         uint256 _listingId,
         address _buyFor,

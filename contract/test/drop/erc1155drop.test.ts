@@ -4,7 +4,7 @@ import { deployments, ethers } from "hardhat";
 import { mine } from "@nomicfoundation/hardhat-network-helpers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
-import { ERC1155Drop, ERC20Mock } from "../../types";
+import { ERC1155Drop, ERC20Test } from "../../types";
 import { IClaimCondition } from "../../types/contracts/drop/ERC1155Drop";
 import { buildMerkleRoot, buildMerkleTree, getMerkleProofs, getTimestamp } from "../utils";
 import MerkleTree from "merkletreejs";
@@ -24,10 +24,8 @@ const URI: string = "ipfs://random-string";
 
 // FEE
 const ONE_BPS: number = 100; // 1% in BPS unit
-const ZERO_FEE: number = ONE_BPS * 0;
 const PLATFORM_FEE: number = ONE_BPS * 5; // 5% of platformFee
 const ROYALTY_FEE: number = ONE_BPS * 5; // 5% of royalty
-const MAX_BPS: number = ONE_BPS * 100; // 100% = MAX_BPS
 
 // ROLES
 const ADMIN_ROLE: string = ethers.constants.HashZero;
@@ -214,10 +212,11 @@ describe("ERC1155Drop", async () => {
   });
 
   describe("ERC1155Drop: lazy mint & claim", async () => {
-    let erc20: ERC20Mock;
+    let erc20: ERC20Test;
 
     before(async () => {
-      erc20 = await ethers.getContractAt("ERC20Mock", (await deployments.get("ERC20Mock")).address);
+      await deployments.fixture("tests");
+      erc20 = await ethers.getContractAt("ERC20Test", (await deployments.get("ERC20Test")).address);
       await erc20.mint(creator.address, 1000);
       await erc20.mint(recipient.address, 1000);
     });
@@ -492,7 +491,7 @@ describe("ERC1155Drop", async () => {
 
         tree = buildMerkleTree(allowlistAddresses, qtyPerUser);
         root = buildMerkleRoot(tree);
-        console.log(tree.toString());
+        // console.log(tree.toString());
 
         const conditions = [
           {

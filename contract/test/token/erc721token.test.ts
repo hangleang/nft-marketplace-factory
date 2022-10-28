@@ -4,7 +4,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { TypedDataDomain, TypedDataField } from "ethers";
 import { mine } from "@nomicfoundation/hardhat-network-helpers";
 
-import { ERC721Token, IERC721Token, ERC20Mock } from "../../types";
+import { ERC721Token, IERC721Token, ERC20Test } from "../../types";
 import ERC721TOKEN_ABI from "../../artifacts/contracts/tokens/ERC721Token.sol/ERC721Token.json";
 import { formatTypedDataField } from "../utils";
 const { utils } = ethers;
@@ -16,8 +16,8 @@ const CONTRACT_VERSION: number = 1;
 const NATIVE_TOKEN: string = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
 // TOKEN
-const NAME: string = "Demo NFT Token";
-const SYMBOL: string = "DNT";
+const NAME: string = "Test NFT Token";
+const SYMBOL: string = "TNT";
 const URI: string = "ipfs://random-string";
 
 // FEE
@@ -125,13 +125,14 @@ describe("ERC721Token", async () => {
     let domain: TypedDataDomain;
     let mintReq: IERC721Token.MintRequestStruct;
     let mintReqType: Record<string, TypedDataField[]>;
-    let erc20: ERC20Mock;
+    let erc20: ERC20Test;
 
     before(async () => {
+      await deployments.fixture("tests");
       const chainId = (await ethers.provider.getNetwork()).chainId;
       const blockNumber = ethers.provider.blockNumber;
       const blockTimestamps = (await ethers.provider.getBlock(blockNumber)).timestamp;
-      erc20 = await ethers.getContractAt("ERC20Mock", (await deployments.get("ERC20Mock")).address);
+      erc20 = await ethers.getContractAt("ERC20Test", (await deployments.get("ERC20Test")).address);
       await erc20.mint(creator.address, 1000);
       await erc20.mint(recipient.address, 1000);
       domain = {
