@@ -1,6 +1,6 @@
 import { DeployFunction } from "hardhat-deploy/types";
 
-import { CONTRACT_REGISTRY, DEV_CHAINS, TRUST_FORWARDERS, VERIFICATION_BLOCK_CONFIRMATIONS } from "../helper-config";
+import { DEV_CHAINS, TRUST_FORWARDERS, VERIFICATION_BLOCK_CONFIRMATIONS } from "../helper-config";
 import { verify } from "../helper-functions";
 
 const func: DeployFunction = async ({ getNamedAccounts, deployments, network }) => {
@@ -32,11 +32,6 @@ const func: DeployFunction = async ({ getNamedAccounts, deployments, network }) 
 
   // Verify the deployment
   if (!isDev) {
-    log("Registry Deployed!");
-    log("----------------------------------------------------");
-    log("Set the recently deployer address in ../../helper-config.ts");
-    log("----------------------------------------------------");
-
     log("Verifying...");
     await verify(registry.address, args);
   }
@@ -45,5 +40,3 @@ const func: DeployFunction = async ({ getNamedAccounts, deployments, network }) 
 export default func;
 func.tags = ["all", "ContractRegistry", "NFT_Marketplace"];
 func.dependencies = ["mocks"]; // this contains dependencies tags need to execute before deploy this contract
-// func.skip = async ({ deployments, network }) =>
-//   CONTRACT_REGISTRY[network.name].length > 0 || deployments.getOrNull("ContractRegistry") != null;
