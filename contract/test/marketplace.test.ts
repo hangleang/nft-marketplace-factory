@@ -30,6 +30,8 @@ const ASSET_ROLE: string = utils.keccak256(utils.toUtf8Bytes("ASSET_ROLE"));
 const NATIVE_TOKEN: string = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 const ADDRRESS_ZERO: string = ethers.constants.AddressZero;
 const ONE_DAY: number = 1 * 24 * 60 * 60; // 1 day
+const DELAY_PERIOD: number = ONE_DAY;
+const STARTLIST_BUFFER: number = 1 * 60 * 60; // 1 hour
 enum TokenType {
   ERC1155,
   ERC721,
@@ -85,7 +87,6 @@ describe("Marketplace", async () => {
   // sample listing params
   let sampleListingParams: IMarketplace.ListingParametersStruct;
   let buyoutPrice: BigNumber;
-  let delayPeriod: number;
   // snapshot for restoring state
   let snapshot: SnapshotRestorer;
 
@@ -96,13 +97,11 @@ describe("Marketplace", async () => {
     erc721token = await ethers.getContractAt("ERC721Test", erc721Address);
     weth = await ethers.getContractAt("WETH", wethAddress);
     buyoutPrice = utils.parseEther("1000");
-    delayPeriod = 1000;
     const currentTimestamp = await getTimestamp();
-    const startTimestamp = currentTimestamp + delayPeriod;
     sampleListingParams = {
       assetContract: erc721token.address,
       tokenId: 0,
-      startTime: startTimestamp,
+      startTime: currentTimestamp,
       secondsUntilEndTime: ONE_DAY,
       quantityToList: 1,
       currencyToAccept: NATIVE_TOKEN,
@@ -129,6 +128,188 @@ describe("Marketplace", async () => {
     expect(await marketplace.hasRole(ASSET_ROLE, ADDRRESS_ZERO)).to.true; // mean any compatible assets can list, otherwise restrict
   });
 
+  describe("Marketplace: listing", async () => {
+    let expectedTokenId: BigNumber;
+
+    before(async () => {
+      // mint & approve the token
+      expectedTokenId = await erc721token.nextTokenIdToMint();
+      await erc721token.connect(artist).mint(lister.address, 1);
+      await erc721token.connect(lister).setApprovalForAll(marketplace.address, true);
+      snapshot = await takeSnapshot();
+    });
+
+    afterEach(async () => await snapshot.restore());
+
+    it("should be able to start list now", async () => {
+      // create direct listing
+      const listParams = {
+        ...sampleListingParams,
+        tokenId: expectedTokenId,
+      };
+      // const expectedListingId = await marketplace.totalListings();
+      await expect(marketplace.connect(lister).createListing(listParams)).to.emit(marketplace, "ListingAdded");
+      // .withArgs(expectedListingId, erc721token.address, lister.address, listing);
+    });
+
+    it("should be able to list in the future", async () => {
+      const currentTimestamp = await getTimestamp();
+      const expectedStartTimestamp = currentTimestamp + DELAY_PERIOD; // now + 1 day
+
+      // create direct listing
+      const listParams = {
+        ...sampleListingParams,
+        tokenId: expectedTokenId,
+        startTime: expectedStartTimestamp,
+      };
+      // this will start listing with expectedStartTimestamp
+      await marketplace.connect(lister).createListing(listParams);
+    });
+
+    it("should be able to list within the STARTLIST_BUFFER", async () => {
+      const currentTimestamp = await getTimestamp();
+      const expectedStartTimestamp = currentTimestamp - STARTLIST_BUFFER / 2; // now - 1/2 hour
+
+      // create direct listing
+      const listParams = {
+        ...sampleListingParams,
+        tokenId: expectedTokenId,
+        startTime: expectedStartTimestamp,
+      };
+      // this will start listing with currentTimestamp, not expectedStartTimestamp
+      await marketplace.connect(lister).createListing(listParams);
+    });
+
+    it("should not able to list if startTimestamp has been past STARTLIST_BUFFER", async () => {
+      const currentTimestamp = await getTimestamp();
+      const expectedStartTimestamp = currentTimestamp - STARTLIST_BUFFER; // now - 1 hour
+
+      // create direct listing
+      const listParams = {
+        ...sampleListingParams,
+        tokenId: expectedTokenId,
+        startTime: expectedStartTimestamp,
+      };
+      await expect(marketplace.connect(lister).createListing(listParams)).to.revertedWith(">ST_BUFFER");
+    });
+
+    it("should be able to update listing which's not start", async () => {
+      const currentTimestamp = await getTimestamp();
+      const expectedStartTimestamp = currentTimestamp + DELAY_PERIOD; // now + 1 day
+
+      // create direct listing
+      const expectedListingId = await marketplace.totalListings();
+      const listParams = {
+        ...sampleListingParams,
+        tokenId: expectedTokenId,
+        startTime: expectedStartTimestamp,
+      };
+      // this will start listing with expectedStartTimestamp
+      await marketplace.connect(lister).createListing(listParams);
+
+      // get current listing state
+      const [
+        _listingID,
+        _tokenOwner,
+        _assetContract,
+        _tokenId,
+        startTime,
+        endTime,
+        quantity,
+        currency,
+        _reservePricePerToken,
+        buyoutPricePerToken,
+        _tokenType,
+        _listingType,
+      ] = await marketplace.listings(expectedListingId);
+
+      // almost start, let's set reserve price per token
+      await mine(DELAY_PERIOD - 10);
+      const newReservePricePerToken = utils.parseEther("100");
+      await expect(
+        marketplace
+          .connect(lister)
+          .updateListing(
+            expectedListingId,
+            quantity,
+            newReservePricePerToken,
+            buyoutPricePerToken,
+            currency,
+            startTime,
+            endTime.sub(startTime),
+          ),
+      )
+        .to.emit(marketplace, "ListingUpdated")
+        .withArgs(expectedListingId, lister.address);
+    });
+
+    it("should not able to update auction listing if started or reserve > buyout", async () => {
+      const currentTimestamp = await getTimestamp();
+      const expectedStartTimestamp = currentTimestamp + DELAY_PERIOD; // now + 1 day
+
+      // create direct listing
+      const expectedListingId = await marketplace.totalListings();
+      const listParams = {
+        ...sampleListingParams,
+        tokenId: expectedTokenId,
+        startTime: expectedStartTimestamp,
+        listingType: ListingType.Auction,
+      };
+      // this will start listing with expectedStartTimestamp
+      await marketplace.connect(lister).createListing(listParams);
+
+      // get current listing state
+      const [
+        _listingID,
+        _tokenOwner,
+        _assetContract,
+        _tokenId,
+        startTime,
+        endTime,
+        quantity,
+        currency,
+        _reservePricePerToken,
+        buyoutPricePerToken,
+        _tokenType,
+        _listingType,
+      ] = await marketplace.listings(expectedListingId);
+
+      // almost started, let's attempt set reserve > buyout
+      const threshold = 10;
+      await mine(DELAY_PERIOD - threshold);
+      const newReservePricePerToken = buyoutPricePerToken.add(1);
+      await expect(
+        marketplace
+          .connect(lister)
+          .updateListing(
+            expectedListingId,
+            quantity,
+            newReservePricePerToken,
+            buyoutPricePerToken,
+            currency,
+            startTime,
+            endTime.sub(startTime),
+          ),
+      ).to.revertedWith(">BUYOUT");
+
+      // started, let's attempt update
+      await mine(threshold);
+      await expect(
+        marketplace
+          .connect(lister)
+          .updateListing(
+            expectedListingId,
+            quantity,
+            newReservePricePerToken,
+            buyoutPricePerToken,
+            currency,
+            startTime,
+            endTime.sub(startTime),
+          ),
+      ).to.revertedWith("STARTED");
+    });
+  });
+
   describe("Marketplace: direct listing", async () => {
     // let sampleDirectParams: IMarketplace.ListingParametersStruct;
     let expectedTokenId: BigNumber;
@@ -137,7 +318,7 @@ describe("Marketplace", async () => {
 
     before("shoulb be able to create direct listing by token owner", async () => {
       const currentTimestamp = await getTimestamp();
-      expectedStartTimestamp = currentTimestamp + delayPeriod;
+      expectedStartTimestamp = currentTimestamp + DELAY_PERIOD;
 
       // mint & approve the token
       expectedTokenId = await erc721token.nextTokenIdToMint();
@@ -152,16 +333,14 @@ describe("Marketplace", async () => {
         startTime: expectedStartTimestamp,
         listingType: ListingType.Direct,
       };
-      // const listing = await marketplace.listings(expectedListingId);
-      await expect(marketplace.connect(lister).createListing(listParams)).to.emit(marketplace, "ListingAdded");
-      // .withArgs(expectedListingId, erc721token.address, lister.address, listing);
+      await marketplace.connect(lister).createListing(listParams);
 
       // mine blocks
-      await mine(delayPeriod);
+      await mine(DELAY_PERIOD);
       snapshot = await takeSnapshot();
     });
 
-    beforeEach(async () => await snapshot.restore());
+    afterEach(async () => await snapshot.restore());
 
     it("checking...", async () => {
       const [
@@ -245,6 +424,32 @@ describe("Marketplace", async () => {
       expect(currentWETHBalance).to.eq(0);
       expect(await erc721token.ownerOf(expectedTokenId)).to.eq(buyers[0].address);
     });
+
+    it("should not able to accept offer if expired", async () => {
+      // calculate amount need to wrap
+      const pricePerToken = utils.parseEther("100");
+      const qtyWanted = 1;
+      const offerAmount = pricePerToken.mul(qtyWanted);
+
+      // wrap 100 ETH
+      await weth.connect(buyers[0]).deposit({ value: offerAmount });
+
+      // approve & make offer with expired timestamp
+      const expirationTimestamp = 0;
+      await weth.connect(buyers[0]).approve(marketplace.address, offerAmount);
+      await expect(
+        marketplace
+          .connect(buyers[0])
+          .offer(expectedListingId, qtyWanted, NATIVE_TOKEN, pricePerToken, expirationTimestamp),
+      )
+        .to.emit(marketplace, "NewOffer")
+        .withArgs(expectedListingId, buyers[0].address, ListingType.Direct, qtyWanted, offerAmount, weth.address);
+
+      // lister attemp accept the expired offer expected to be reverted
+      await expect(
+        marketplace.connect(lister).acceptOffer(expectedListingId, buyers[0].address, weth.address, pricePerToken),
+      ).to.revertedWith("EXPIRED");
+    });
   });
 
   describe("Marketplace: auction listing", async () => {
@@ -255,7 +460,7 @@ describe("Marketplace", async () => {
 
     before("shoulb be able to create auction listing by token owner", async () => {
       const currentTimestamp = await getTimestamp();
-      expectedStartTimestamp = currentTimestamp + delayPeriod;
+      expectedStartTimestamp = currentTimestamp + DELAY_PERIOD;
 
       // mint & approve the token
       expectedTokenId = await erc721token.nextTokenIdToMint();
@@ -270,16 +475,14 @@ describe("Marketplace", async () => {
         startTime: expectedStartTimestamp,
         listingType: ListingType.Auction,
       };
-      // const listing = await marketplace.listings(expectedListingId);
-      await expect(marketplace.connect(lister).createListing(listParams)).to.emit(marketplace, "ListingAdded");
-      // .withArgs(expectedListingId, erc721token.address, lister.address, listing);
+      await marketplace.connect(lister).createListing(listParams);
 
       // mine blocks
-      await mine(delayPeriod);
+      await mine(DELAY_PERIOD);
       snapshot = await takeSnapshot();
     });
 
-    beforeEach(async () => await snapshot.restore());
+    afterEach(async () => await snapshot.restore());
 
     it("checking...", async () => {
       const [
