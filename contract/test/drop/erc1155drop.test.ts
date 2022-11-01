@@ -129,10 +129,7 @@ describe("ERC1155Drop", async () => {
 
     it("should be able to set claim conditions by ADMIN_ROLE", async () => {
       const tokenId = 1;
-      await expect(erc1155Drop.connect(creator).setClaimConditions(tokenId, claimConditions, false)).to.emit(
-        erc1155Drop,
-        "ClaimConditionsUpdated",
-      );
+      await expect(erc1155Drop.connect(creator).setClaimConditions(tokenId, claimConditions, false)).to.not.reverted;
       // .withArgs(tokenId, claimConditions);
     });
 

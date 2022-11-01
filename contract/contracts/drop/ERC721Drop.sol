@@ -59,7 +59,7 @@ contract ERC721Drop is
     //////////////////////////////////////////////////////////////*/
 
     bytes32 private constant CONTRACT_TYPE = bytes32("ERC721Drop");
-    uint256 private constant VERSION = 1;
+    uint256 private constant VERSION = 2;
     
     /// @dev Contract level metadata.
     string public contractURI;
@@ -513,7 +513,6 @@ contract ERC721Drop is
     /*///////////////////////////////////////////////////////////////
                         Internal Functions
     //////////////////////////////////////////////////////////////*/
-
     
     /// @dev Collects and distributes the primary sale value of NFTs being claimed.
     function _collectClaimPrice(

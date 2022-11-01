@@ -59,7 +59,7 @@ contract ERC1155Drop is
     //////////////////////////////////////////////////////////////*/
 
     bytes32 private constant CONTRACT_TYPE = bytes32("ERC1155Drop");
-    uint256 private constant VERSION = 1;
+    uint256 private constant VERSION = 2;
     
     /// @dev Contract level metadata.
     string public contractURI;
@@ -366,8 +366,6 @@ contract ERC1155Drop is
                 }
             }
         }
-
-        emit ClaimConditionsUpdated(_tokenId, _phases);
     }
 
     /// @dev Checks whether a claimer meets the claim condition's allowlist criteria.

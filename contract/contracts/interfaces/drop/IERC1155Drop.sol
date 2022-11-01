@@ -19,8 +19,8 @@ interface IERC1155Drop is IMetadata, IERC1155Upgradeable, IClaimCondition {
     /// @dev Emitted when tokens are lazy minted.
     event TokensLazyMinted(uint256 startTokenId, uint256 endTokenId, string baseURI);
 
-    /// @dev Emitted when new claim conditions are set for a token.
-    event ClaimConditionsUpdated(uint256 indexed tokenId, ClaimCondition[] claimConditions);
+    // /// @dev Emitted when new claim conditions are set for a token.
+    // event ClaimConditionsUpdated(uint256 indexed tokenId, bytes[] claimConditions);
 
     /// @dev Emitted when the global max supply of a token is updated.
     event MaxTotalSupplyUpdated(uint256 tokenId, uint256 maxTotalSupply);
