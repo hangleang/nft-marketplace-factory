@@ -22,8 +22,8 @@ interface IERC721Drop is IMetadata, IERC721Upgradeable, IClaimCondition {
     /// @dev Emitted when the URI for a batch of 'delayed-reveal' NFTs is revealed.
     event NFTRevealed(uint256 endTokenId, string revealedURI);
 
-    /// @dev Emitted when new claim conditions are set.
-    event ClaimConditionsUpdated(ClaimCondition[] claimConditions);
+    // /// @dev Emitted when new claim conditions are set.
+    // event ClaimConditionsUpdated(bytes[] claimConditions);
 
     /// @dev Emitted when the global max supply of tokens is updated.
     event MaxTotalSupplyUpdated(uint256 maxTotalSupply);
