@@ -11,7 +11,7 @@
     "build": "pnpm build:contract && pnpm build:frontend",
     "build:frontend": "cd frontend && pnpm build",
     "build:contract": "cd contract && pnpm build",
-    "deploy": "cd contract && pnpm deploy",
+    "deploy": "cd contract && pnpm run deploy",
     "test": "cd contract && pnpm test",
     "subgraph:init": "graph init --studio subgraph",
     "release": "pnpm build && release-it",
