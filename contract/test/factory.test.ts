@@ -21,7 +21,7 @@ describe("Factory", () => {
 
   before(async () => {
     [platformOwner, creator, saleRecipient, royaltyRecipient] = await ethers.getSigners();
-    await deployments.fixture(["ContractFactory", "Impls"]);
+    await deployments.fixture(["ContractFactory", "AddImpls"]);
     rigistry = await ethers.getContractAt("ContractRegistry", (await deployments.get("ContractRegistry")).address);
     factory = await ethers.getContractAt("ContractFactory", (await deployments.get("ContractFactory")).address);
     erc721TokenImpl = await ethers.getContractAt("ERC721Token", (await deployments.get("ERC721Token")).address);

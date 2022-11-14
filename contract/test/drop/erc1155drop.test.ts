@@ -14,7 +14,7 @@ const { utils } = ethers;
 // CONTRACT METADATA
 const CONTRACT_NAME: string = "ERC1155Drop";
 const CONTRACT_TYPE: string = utils.formatBytes32String(CONTRACT_NAME);
-const CONTRACT_VERSION: number = 1;
+const CONTRACT_VERSION: number = 2;
 const NATIVE_TOKEN: string = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
 // TOKEN
@@ -47,7 +47,7 @@ describe("ERC1155Drop", async () => {
   let defaultClaimCondition: IClaimCondition.ClaimConditionStruct;
 
   before(async () => {
-    await deployments.fixture(["ContractFactory", "Impls"]);
+    await deployments.fixture(["ContractFactory", "AddImpls"]);
     [platformOwner, creator, saleRecipient, royaltyRecipient, recipient, ...allowlist] = await ethers.getSigners();
     erc1155Drop = await ethers.getContractAt("ERC1155Drop", (await deployments.get("ERC1155Drop")).address);
     const factory = await ethers.getContractAt("ContractFactory", (await deployments.get("ContractFactory")).address);

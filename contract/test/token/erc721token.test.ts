@@ -44,7 +44,7 @@ describe("ERC721Token", async () => {
 
   before(async () => {
     [platformOwner, creator, saleRecipient, royaltyRecipient, recipient, operator] = await ethers.getSigners();
-    await deployments.fixture(["ContractFactory", "Impls"]);
+    await deployments.fixture(["ContractFactory", "AddImpls"]);
     const factory = await ethers.getContractAt("ContractFactory", (await deployments.get("ContractFactory")).address);
 
     const initParams: unknown[] = [

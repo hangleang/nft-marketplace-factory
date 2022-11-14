@@ -169,12 +169,6 @@ bytes32 CONTRACT_TYPE
 uint256 VERSION
 ```
 
-### CLAIM_CONDITION_HASH
-
-```solidity
-bytes32 CLAIM_CONDITION_HASH
-```
-
 ### contractURI
 
 ```solidity
@@ -471,14 +465,6 @@ function _transferClaimedTokens(address _to, uint256 _conditionId, uint256 _toke
 
 _Transfers the NFTs being claimed._
 
-### _encodeClaimCondition
-
-```solidity
-function _encodeClaimCondition(struct IClaimCondition.ClaimCondition _condition) internal pure returns (bytes)
-```
-
-_Encode `ClaimCondition` type into bytes data._
-
 ### _beforeTokenTransfer
 
 ```solidity
@@ -527,12 +513,6 @@ bytes32 CONTRACT_TYPE
 
 ```solidity
 uint256 VERSION
-```
-
-### CLAIM_CONDITION_HASH
-
-```solidity
-bytes32 CLAIM_CONDITION_HASH
 ```
 
 ### contractURI
@@ -821,14 +801,6 @@ _Transfers the NFTs being claimed._
 ```solidity
 function encryptDecrypt(bytes data, bytes key) public pure returns (bytes result)
 ```
-
-### _encodeClaimCondition
-
-```solidity
-function _encodeClaimCondition(struct IClaimCondition.ClaimCondition _condition) internal pure returns (bytes)
-```
-
-_Encode `ClaimCondition` type into bytes data._
 
 ### _beforeTokenTransfer
 
@@ -1499,14 +1471,6 @@ event TokensLazyMinted(uint256 startTokenId, uint256 endTokenId, string baseURI)
 
 _Emitted when tokens are lazy minted._
 
-### ClaimConditionsUpdated
-
-```solidity
-event ClaimConditionsUpdated(uint256 tokenId, bytes[] claimConditions)
-```
-
-_Emitted when new claim conditions are set for a token._
-
 ### MaxTotalSupplyUpdated
 
 ```solidity
@@ -1604,18 +1568,10 @@ _Emitted when tokens are lazy minted._
 ### NFTRevealed
 
 ```solidity
-event NFTRevealed(uint256 endTokenId, string revealedURI)
+event NFTRevealed(uint256 startTokenId, uint256 endTokenId, string revealedURI)
 ```
 
 _Emitted when the URI for a batch of 'delayed-reveal' NFTs is revealed._
-
-### ClaimConditionsUpdated
-
-```solidity
-event ClaimConditionsUpdated(bytes[] claimConditions)
-```
-
-_Emitted when new claim conditions are set._
 
 ### MaxTotalSupplyUpdated
 

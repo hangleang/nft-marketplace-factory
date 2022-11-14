@@ -59,7 +59,7 @@ contract ERC721Drop is
     //////////////////////////////////////////////////////////////*/
 
     bytes32 private constant CONTRACT_TYPE = bytes32("ERC721Drop");
-    uint256 private constant VERSION = 2;
+    uint256 private constant VERSION = 3;
     
     /// @dev Contract level metadata.
     string public contractURI;
@@ -237,7 +237,14 @@ contract ERC721Drop is
         baseURI[_index] = revealedURI;
         delete encryptedData[_index];
 
-        emit NFTRevealed(_index, revealedURI);
+        uint256 prevIndice;
+        if (index == 0) {
+            prevIndice = 0;
+        } else {
+            prevIndice = baseURIIndices[index - 1];
+        }
+
+        emit NFTRevealed(prevIndice, _index, revealedURI);
 
         return revealedURI;
     }

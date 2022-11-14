@@ -4334,7 +4334,7 @@
       ]
     },
     "ERC721Drop": {
-      "address": "0x1ab39F856af73d8ae2fA4Eed830D6c170B51855F",
+      "address": "0xDe597DBe82F960c9F65517e7e942388C8bD94f5d",
       "abi": [
         {
           "anonymous": false,
@@ -4447,6 +4447,12 @@
         {
           "anonymous": false,
           "inputs": [
+            {
+              "indexed": false,
+              "internalType": "uint256",
+              "name": "startTokenId",
+              "type": "uint256"
+            },
             {
               "indexed": false,
               "internalType": "uint256",

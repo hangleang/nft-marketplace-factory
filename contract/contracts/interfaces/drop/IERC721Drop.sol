@@ -20,7 +20,7 @@ interface IERC721Drop is IMetadata, IERC721Upgradeable, IClaimCondition {
     event TokensLazyMinted(uint256 startTokenId, uint256 endTokenId, string baseURI, bytes encryptedBaseURI);
 
     /// @dev Emitted when the URI for a batch of 'delayed-reveal' NFTs is revealed.
-    event NFTRevealed(uint256 endTokenId, string revealedURI);
+    event NFTRevealed(uint256 startTokenId, uint256 endTokenId, string revealedURI);
 
     // /// @dev Emitted when new claim conditions are set.
     // event ClaimConditionsUpdated(bytes[] claimConditions);
