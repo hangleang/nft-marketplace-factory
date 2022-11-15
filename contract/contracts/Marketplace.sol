@@ -52,14 +52,11 @@ contract Marketplace is
                             State variables
     //////////////////////////////////////////////////////////////*/
 
-    bytes32 private constant CONTRACT_TYPE = bytes32("Marketplace");
-    uint256 private constant VERSION = 1;
-
     /// @dev Only lister role holders can create listings, when listings are restricted by lister address.
     bytes32 private constant LISTER_ROLE = keccak256("LISTER_ROLE");
     /// @dev Only assets from NFT contracts with asset role can be listed, when listings are restricted by asset address.
     bytes32 private constant ASSET_ROLE = keccak256("ASSET_ROLE");
-    
+
     /// @dev The max bps of the contract. So, 10_000 == 100 %
     uint16 private constant MAX_BPS = 10_000;
 
@@ -69,7 +66,7 @@ contract Marketplace is
     /// @dev The address of the native token wrapper contract.
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     address private immutable nativeTokenWrapper;
-    
+
     /// @dev Contract level metadata.
     string public contractURI;
 
@@ -154,18 +151,8 @@ contract Marketplace is
     /// @dev Lets the contract receives native tokens from `nativeTokenWrapper` withdraw.
     receive() external payable {}
 
-    /// @dev Returns the type of the contract.
-    function contractType() external override pure returns (bytes32) {
-        return CONTRACT_TYPE;
-    }
-
-    /// @dev Returns the version of the contract.
-    function contractVersion() external override pure returns (uint8) {
-        return uint8(VERSION);
-    }
-
     /// @dev Lets a module admin set the URI for contract-level metadata.
-    function setContractURI(string calldata _uri) external override onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setContractURI(string calldata _uri) external onlyRole(DEFAULT_ADMIN_ROLE) {
         contractURI = _uri;
     }
 
@@ -534,7 +521,8 @@ contract Marketplace is
             _targetListing.listingType,
             _newOffer.quantityWanted,
             _newOffer.pricePerToken * _newOffer.quantityWanted,
-            _newOffer.currency
+            _newOffer.currency,
+            _newOffer.expirationTimestamp
         );
     }
 
@@ -600,7 +588,8 @@ contract Marketplace is
             _targetListing.listingType,
             _incomingBid.quantityWanted,
             _incomingBid.pricePerToken * _incomingBid.quantityWanted,
-            _incomingBid.currency
+            _incomingBid.currency,
+            _incomingBid.expirationTimestamp
         );
     }
 

@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.11;
 
-import "./IMetadata.sol";
 import "../extensions/interfaces/IPlatformFee.sol";
 
-interface IMarketplace is IMetadata, IPlatformFee {
+interface IMarketplace is IPlatformFee {
     /// @notice Type of the tokens that can be listed for sale.
     enum TokenType {
         ERC1155,
@@ -180,7 +179,8 @@ interface IMarketplace is IMetadata, IPlatformFee {
         ListingType indexed listingType,
         uint256 quantityWanted,
         uint256 totalOfferAmount,
-        address currency
+        address currency,
+        uint256 expiredTimestamp
     );
 
     /// @dev Emitted when an auction is closed.

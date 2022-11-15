@@ -3,11 +3,9 @@ import { deployments, ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 import { ContractFactory, ContractRegistry, ERC721Token, Greeter } from "../types";
-import { Contract } from "ethers";
 const { utils } = ethers;
 
 const ERC721TOKEN_TYPE: string = utils.formatBytes32String("ERC721Token");
-const MARKETPLACE_TYPE: string = utils.formatBytes32String("Marketplace");
 
 describe("Factory", () => {
   let platformOwner: SignerWithAddress;
@@ -66,33 +64,6 @@ describe("Factory", () => {
       .connect(creator)
       .deployProxyByImplementation(erc721TokenImpl.address, encodedInitData, salt);
     await expect(deployTxn).to.emit(factory, "ProxyDeployed").to.emit(rigistry, "Added");
-  });
-
-  describe("Factory: add marketplace implementation", async () => {
-    let marketplace: Contract;
-
-    before(async () => {
-      // await deployments.fixture("mocks");
-      const weth = await deployments.get("WETH");
-      marketplace = await ethers
-        .getContractFactory("Marketplace")
-        .then(f => f.connect(platformOwner).deploy(weth.address));
-    });
-
-    it("should able to add new implementation with compatible contract", async () => {
-      const version = await marketplace.contractVersion();
-
-      await expect(factory.connect(platformOwner).addImplementation(marketplace.address))
-        .to.emit(factory, "ImplementationAdded")
-        .withArgs(marketplace.address, MARKETPLACE_TYPE, version);
-    });
-
-    it("should not able to add or approve new implemetation if signer is not the admin or FACTORY_ROLE", async () => {
-      await expect(factory.connect(creator).addImplementation(marketplace.address)).to.revertedWith("!ACCESS");
-      await expect(factory.connect(creator).approveImplementation(marketplace.address, true)).to.revertedWith(
-        "!ACCESS",
-      );
-    });
   });
 
   describe("Factory: attempt to add incompatible implementation", async () => {

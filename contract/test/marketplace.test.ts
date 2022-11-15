@@ -10,9 +10,6 @@ import { BigNumber } from "ethers";
 const { utils } = ethers;
 
 // CONTRACT METADATA
-const CONTRACT_NAME: string = "Marketplace";
-const CONTRACT_TYPE: string = utils.formatBytes32String(CONTRACT_NAME);
-const CONTRACT_VERSION: number = 1;
 const CONTRACT_URI: string = "ipfs://random-string";
 
 // FEE
@@ -112,11 +109,6 @@ describe("Marketplace", async () => {
   });
 
   it("checking...", async () => {
-    // CHECK CONTRACT METADATA
-    expect(await marketplace.contractType()).to.eq(CONTRACT_TYPE);
-    expect(await marketplace.contractVersion()).to.eq(CONTRACT_VERSION);
-    expect(await marketplace.contractURI()).to.eq(CONTRACT_URI);
-
     // CHECK PLATFORM INFO
     const platformInfo = await marketplace.getPlatformFeeInfo();
     expect(platformInfo[0]).to.eq(feeCollector.address);
@@ -397,7 +389,15 @@ describe("Marketplace", async () => {
           .offer(expectedListingId, qtyWanted, NATIVE_TOKEN, pricePerToken, expirationTimestamp),
       )
         .to.emit(marketplace, "NewOffer")
-        .withArgs(expectedListingId, buyers[0].address, ListingType.Direct, qtyWanted, offerAmount, weth.address);
+        .withArgs(
+          expectedListingId,
+          buyers[0].address,
+          ListingType.Direct,
+          qtyWanted,
+          offerAmount,
+          weth.address,
+          expirationTimestamp,
+        );
 
       // token ownership & WETH balance is out of users wallet
       currentTokenOwner = await erc721token.ownerOf(expectedTokenId);
@@ -443,7 +443,15 @@ describe("Marketplace", async () => {
           .offer(expectedListingId, qtyWanted, NATIVE_TOKEN, pricePerToken, expirationTimestamp),
       )
         .to.emit(marketplace, "NewOffer")
-        .withArgs(expectedListingId, buyers[0].address, ListingType.Direct, qtyWanted, offerAmount, weth.address);
+        .withArgs(
+          expectedListingId,
+          buyers[0].address,
+          ListingType.Direct,
+          qtyWanted,
+          offerAmount,
+          weth.address,
+          expirationTimestamp,
+        );
 
       // lister attemp accept the expired offer expected to be reverted
       await expect(
