@@ -1,343 +1,123 @@
 # Solidity API
 
-## Marketplace
+## ContractFactory
 
-_Marketplace contract definition
-IMarketplace: Marketplace contract interface which contains data structs, event definitions, functions signature
-Initializable: a base contract to aid in writing UPGRADEABLE contracts
-UUPSUpgradeable: allow to perform an upgrade of an ERC1967Proxy using UUPS proxies.
-ReentrancyGuardUpgradeable: prevent reentrant calls to a function
-ERC2771ContextUpgradeable: support for meta transactions, useful for onboarding new users mint, list NFT without upfront gas
-AccessControlEnumerableUpgradeable: implement role-based access control mechanisms, more robust than Ownable
-IERC721ReceiverUpgradeable: NFT token receiver interface (IERC721)
-IERC1155ReceiverUpgradeable: Semi-fungible token receiver interface (IERC1155)_
+_ContractFactory contract definition
+IContractFactory: ContractFactory contract interface which contains data structs, event definitions, functions signature
+ERC2771Context: support for meta transactions, useful for onboarding new users mint, list NFT without upfront gas
+Multicall: batch together multiple calls in a single external call
+AccessControlEnumerable: implement role-based access control mechanisms, more robust than Ownable_
 
-### LISTER_ROLE
+### FACTORY_ROLE
 
 ```solidity
-bytes32 LISTER_ROLE
+bytes32 FACTORY_ROLE
 ```
 
-_Only lister role holders can create listings, when listings are restricted by lister address._
+_Only FACTORY_ROLE holders can approve/unapprove implementations for proxies to point to._
 
-### ASSET_ROLE
+### registry
 
 ```solidity
-bytes32 ASSET_ROLE
+address registry
 ```
 
-_Only assets from NFT contracts with asset role can be listed, when listings are restricted by asset address._
+_The contract registry address_
 
-### MAX_BPS
+### approvals
 
 ```solidity
-uint16 MAX_BPS
+mapping(address => bool) approvals
 ```
 
-_The max bps of the contract. So, 10_000 == 100 %_
+_mapping of implementation address to deployment approval_
 
-### STARTTIME_BUFFER
+### currentVersion
 
 ```solidity
-uint256 STARTTIME_BUFFER
+mapping(bytes32 => uint256) currentVersion
 ```
 
-_The time buffer start listing in the past_
+_mapping of implementation address to implementation added version_
 
-### nativeTokenWrapper
+### implementations
 
 ```solidity
-address nativeTokenWrapper
+mapping(bytes32 => mapping(uint256 => address)) implementations
 ```
 
-_The address of the native token wrapper contract._
+_mapping of contract type to contract version to implementation address_
 
-### totalListings
+### deployers
 
 ```solidity
-uint256 totalListings
+mapping(address => address) deployers
 ```
 
-_Total number of listings ever created in the marketplace._
-
-### timeBuffer
-
-```solidity
-uint64 timeBuffer
-```
-
-@dev The amount of time added to an auction's 'endTime', if a bid is made within `timeBuffer`
-      seconds of the existing `endTime`. Default: 15 minutes.
-
-### bidBufferBps
-
-```solidity
-uint64 bidBufferBps
-```
-
-_The minimum % increase required from the previous winning bid. Default: 5%._
-
-### listings
-
-```solidity
-mapping(uint256 => struct IMarketplace.Listing) listings
-```
-
-_Mapping from uid of listing => listing info._
-
-### offers
-
-```solidity
-mapping(uint256 => mapping(address => struct IMarketplace.Offer)) offers
-```
-
-_Mapping from uid of a direct listing => offeror address => offer made to the direct listing by the respective offeror._
-
-### winningBid
-
-```solidity
-mapping(uint256 => struct IMarketplace.Offer) winningBid
-```
-
-_Mapping from uid of an auction listing => current winning bid in an auction._
-
-### onlyListingCreator
-
-```solidity
-modifier onlyListingCreator(uint256 _listingId)
-```
-
-_Checks whether caller is a listing creator._
-
-### onlyExistingListing
-
-```solidity
-modifier onlyExistingListing(uint256 _listingId)
-```
-
-_Checks whether a listing exists._
+_mapping of proxy address to deployer address_
 
 ### constructor
 
 ```solidity
-constructor(address _nativeTokenWrapper) public
+constructor(address _trustForwarder, address _registry) public
 ```
 
-### initialize
+### deployProxy
 
 ```solidity
-function initialize(address _defaultAdmin, address[] _trustedForwarders, address _platformFeeRecipient, uint256 _platformFeeBps) external
+function deployProxy(bytes32 _type, bytes _data) external returns (address)
 ```
 
-_Initiliazes the contract, like a constructor._
+_Deploys a proxy that points to the latest version of the given contract type._
 
-### receive
+### deployProxyDeterministic
 
 ```solidity
-receive() external payable
+function deployProxyDeterministic(bytes32 _type, bytes _data, bytes32 _salt) public returns (address)
 ```
 
-_Lets the contract receives native tokens from `nativeTokenWrapper` withdraw._
+@dev Deploys a proxy at a deterministic address by taking in `salt` as a parameter.
+      Proxy points to the latest version of the given contract type.
 
-### onERC1155Received
+### deployProxyByImplementation
 
 ```solidity
-function onERC1155Received(address, address, uint256, uint256, bytes) public virtual returns (bytes4)
+function deployProxyByImplementation(address _implementation, bytes32 _type, bytes _data, bytes32 _salt) public returns (address deployedProxy)
 ```
 
-### onERC1155BatchReceived
+_Deploys a proxy that points to the given implementation._
+
+### addImplementation
 
 ```solidity
-function onERC1155BatchReceived(address, address, uint256[], uint256[], bytes) public virtual returns (bytes4)
+function addImplementation(address _implementation) external
 ```
 
-### onERC721Received
+_Lets a contract admin set the address of a contract type x version._
+
+### approveImplementation
 
 ```solidity
-function onERC721Received(address, address, uint256, bytes) external pure returns (bytes4)
+function approveImplementation(address _implementation, bool _toApprove) external
 ```
 
-### supportsInterface
+_Lets a contract admin approve a specific contract for deployment._
+
+### getImplementation
 
 ```solidity
-function supportsInterface(bytes4 interfaceId) public view virtual returns (bool)
+function getImplementation(bytes32 _type, uint256 _version) external view returns (address)
 ```
 
-### createListing
+_Returns the implementation given a contract type and version._
+
+### getLatestImplementation
 
 ```solidity
-function createListing(struct IMarketplace.ListingParameters _params) external
+function getLatestImplementation(bytes32 _type) external view returns (address)
 ```
 
-_Lets a token owner list tokens for sale: Direct Listing or Auction._
-
-### updateListing
-
-```solidity
-function updateListing(uint256 _listingId, uint256 _quantityToList, uint256 _reservePricePerToken, uint256 _buyoutPricePerToken, address _currencyToAccept, uint256 _startTime, uint256 _secondsUntilEndTime) external
-```
-
-_Lets a listing's creator edit the listing's parameters._
-
-### cancelDirectListing
-
-```solidity
-function cancelDirectListing(uint256 _listingId) external
-```
-
-_Lets a direct listing creator cancel their listing._
-
-### buy
-
-```solidity
-function buy(uint256 _listingId, address _buyFor, uint256 _quantityToBuy, address _currency, uint256 _totalPrice) external payable
-```
-
-_Lets an account buy a given quantity of tokens from a direct listing._
-
-### acceptOffer
-
-```solidity
-function acceptOffer(uint256 _listingId, address _offeror, address _currency, uint256 _pricePerToken) external
-```
-
-_Lets a listing's creator accept an offer for their direct listing._
-
-### executeSale
-
-```solidity
-function executeSale(struct IMarketplace.Listing _targetListing, address _payer, address _receiver, address _currency, uint256 _currencyAmountToTransfer, uint256 _listingTokenAmountToTransfer) internal
-```
-
-_Performs a direct listing sale._
-
-### offer
-
-```solidity
-function offer(uint256 _listingId, uint256 _quantityWanted, address _currency, uint256 _pricePerToken, uint256 _expirationTimestamp) external payable
-```
-
-_Lets an account make an offer to a direct listing._
-
-### handleOffer
-
-```solidity
-function handleOffer(struct IMarketplace.Listing _targetListing, struct IMarketplace.Offer _newOffer) internal
-```
-
-_Processes a new offer to a direct listing._
-
-### handleBid
-
-```solidity
-function handleBid(struct IMarketplace.Listing _targetListing, struct IMarketplace.Offer _incomingBid) internal
-```
-
-_Processes an incoming bid in an auction._
-
-### isNewWinningBid
-
-```solidity
-function isNewWinningBid(uint256 _reserveAmount, uint256 _currentWinningBidAmount, uint256 _incomingBidAmount) internal view returns (bool isValidNewBid)
-```
-
-_Checks whether an incoming bid is the new current highest bid._
-
-### closeAuction
-
-```solidity
-function closeAuction(uint256 _listingId, address _closeFor) external
-```
-
-_Lets an account close an auction for eit her the (1) winning bidder, or (2) auction creator._
-
-### _cancelAuction
-
-```solidity
-function _cancelAuction(struct IMarketplace.Listing _targetListing) internal
-```
-
-_Cancels an auction._
-
-### _closeAuctionForAuctionCreator
-
-```solidity
-function _closeAuctionForAuctionCreator(struct IMarketplace.Listing _targetListing, struct IMarketplace.Offer _winningBid) internal
-```
-
-_Closes an auction for an auction creator; distributes winning bid amount to auction creator._
-
-### _closeAuctionForBidder
-
-```solidity
-function _closeAuctionForBidder(struct IMarketplace.Listing _targetListing, struct IMarketplace.Offer _winningBid) internal
-```
-
-_Closes an auction for the winning bidder; distributes auction items to the winning bidder._
-
-### setAuctionBuffers
-
-```solidity
-function setAuctionBuffers(uint256 _timeBuffer, uint256 _bidBufferBps) external
-```
-
-_Lets a contract admin set auction buffers._
-
-### transferListingTokens
-
-```solidity
-function transferListingTokens(enum IMarketplace.TokenType tokenType, address _assetContract, address _from, address _to, uint256 _tokenId, uint256 _quantity) internal
-```
-
-_Transfers tokens listed for sale in a direct or auction listing._
-
-### payout
-
-```solidity
-function payout(address _payer, address _payee, address _currencyToUse, uint256 _totalPayoutAmount, struct IMarketplace.Listing _listing) internal
-```
-
-_Pays out stakeholders in a sale._
-
-### validateOwnershipAndApproval
-
-```solidity
-function validateOwnershipAndApproval(enum IMarketplace.TokenType _tokenType, address _tokenOwner, address _assetContract, uint256 _tokenId, uint256 _quantity) internal view
-```
-
-_Validates that `_tokenOwner` owns and has approved Market to transfer NFTs._
-
-### validateERC20BalAndAllowance
-
-```solidity
-function validateERC20BalAndAllowance(address _addrToCheck, address _currency, uint256 _currencyAmountToCheckAgainst) internal view
-```
-
-_Validates that `_addrToCheck` owns and has approved markeplace to transfer the appropriate amount of currency_
-
-### validateDirectListingSale
-
-```solidity
-function validateDirectListingSale(struct IMarketplace.Listing _listing, address _payer, uint256 _quantityToBuy, address _currency, uint256 settledTotalPrice) internal
-```
-
-_Validates conditions of a direct listing sale._
-
-### getTokenType
-
-```solidity
-function getTokenType(address _assetContract) internal view returns (enum IMarketplace.TokenType tokenType)
-```
-
-_Returns the interface supported by a contract._
-
-### getSafeQuantity
-
-```solidity
-function getSafeQuantity(enum IMarketplace.TokenType _tokenType, uint256 _quantityToCheck) internal pure returns (uint256 safeQuantity)
-```
-
-_Enforces quantity == 1 if tokenType is TokenType.ERC721._
+_Returns the latest implementation given a contract type._
 
 ### _msgSender
 
@@ -349,536 +129,6 @@ function _msgSender() internal view virtual returns (address sender)
 
 ```solidity
 function _msgData() internal view virtual returns (bytes)
-```
-
-### _authorizeUpgrade
-
-```solidity
-function _authorizeUpgrade(address newImplementation) internal virtual
-```
-
-_Function that should revert when `msg.sender` is not authorized to upgrade the contract. Called by
-{upgradeTo} and {upgradeToAndCall}.
-
-Normally, this function will use an xref:access.adoc[access control] modifier such as {Ownable-onlyOwner}.
-
-```solidity
-function _authorizeUpgrade(address) internal override onlyOwner {}
-```_
-
-### _isListingCreator
-
-```solidity
-function _isListingCreator(uint256 _listingId) internal view
-```
-
-### _isListingExists
-
-```solidity
-function _isListingExists(uint256 _listingId) internal view
-```
-
-## ERC2771ContextUpgradeable
-
-_Context variant with ERC2771 support._
-
-### _trustedForwarder
-
-```solidity
-mapping(address => bool) _trustedForwarder
-```
-
-### __ERC2771Context_init
-
-```solidity
-function __ERC2771Context_init(address[] trustedForwarder) internal
-```
-
-### __ERC2771Context_init_unchained
-
-```solidity
-function __ERC2771Context_init_unchained(address[] trustedForwarder) internal
-```
-
-### isTrustedForwarder
-
-```solidity
-function isTrustedForwarder(address forwarder) public view virtual returns (bool)
-```
-
-### _msgSender
-
-```solidity
-function _msgSender() internal view virtual returns (address sender)
-```
-
-### _msgData
-
-```solidity
-function _msgData() internal view virtual returns (bytes)
-```
-
-### __gap
-
-```solidity
-uint256[49] __gap
-```
-
-## IPlatformFee
-
-### getPlatformFeeInfo
-
-```solidity
-function getPlatformFeeInfo() external view returns (address, uint16)
-```
-
-_Returns the platform fee bps and recipient._
-
-### setPlatformFeeInfo
-
-```solidity
-function setPlatformFeeInfo(address _platformFeeRecipient, uint256 _platformFeeBps) external
-```
-
-_Lets a module admin update the fees on primary sales._
-
-### PlatformFeeInfoUpdated
-
-```solidity
-event PlatformFeeInfoUpdated(address platformFeeRecipient, uint256 platformFeeBps)
-```
-
-_Emitted when fee on primary sales is updated._
-
-## PlatformFeeUpgradeable
-
-### MAX_BPS
-
-```solidity
-uint256 MAX_BPS
-```
-
-_Max BPS_
-
-### _platformFeeRecipient
-
-```solidity
-address _platformFeeRecipient
-```
-
-_The adress that receives all primary sales value._
-
-### _platformFeeBps
-
-```solidity
-uint128 _platformFeeBps
-```
-
-_The % of primary sales collected by the contract as fees._
-
-### isValidBPS
-
-```solidity
-modifier isValidBPS(uint256 _bps)
-```
-
-### __PlatformFee_init
-
-```solidity
-function __PlatformFee_init(address _recipient, uint128 _bps) internal
-```
-
-_Initializes the contract setting the given args as platform fee info._
-
-### __PlatformFee_init_unchained
-
-```solidity
-function __PlatformFee_init_unchained(address _recipient, uint128 _bps) internal
-```
-
-### platformFeeRecipient
-
-```solidity
-function platformFeeRecipient() public view virtual returns (address)
-```
-
-_Returns the address of the platform fee recipient._
-
-### platformFeeBps
-
-```solidity
-function platformFeeBps() public view virtual returns (uint128)
-```
-
-_Returns the % of platform fee collected by the contract as fees._
-
-### getPlatformFeeInfo
-
-```solidity
-function getPlatformFeeInfo() external view virtual returns (address, uint16)
-```
-
-_Returns the platform fee bps and recipient._
-
-### setPlatformFeeInfo
-
-```solidity
-function setPlatformFeeInfo(address _recipient, uint256 _bps) external virtual
-```
-
-_Lets a module admin update the fees on primary sales._
-
-### _setPlatformFeeInfo
-
-```solidity
-function _setPlatformFeeInfo(address _recipient, uint128 _bps) internal virtual
-```
-
-## IMarketplace
-
-### TokenType
-
-```solidity
-enum TokenType {
-  ERC1155,
-  ERC721
-}
-```
-
-### ListingType
-
-```solidity
-enum ListingType {
-  Direct,
-  Auction
-}
-```
-
-### Offer
-
-```solidity
-struct Offer {
-  uint256 listingId;
-  address offeror;
-  uint256 quantityWanted;
-  address currency;
-  uint256 pricePerToken;
-  uint256 expirationTimestamp;
-}
-```
-
-### ListingParameters
-
-```solidity
-struct ListingParameters {
-  address assetContract;
-  uint256 tokenId;
-  uint256 startTime;
-  uint256 secondsUntilEndTime;
-  uint256 quantityToList;
-  address currencyToAccept;
-  uint256 reservePricePerToken;
-  uint256 buyoutPricePerToken;
-  enum IMarketplace.ListingType listingType;
-}
-```
-
-### Listing
-
-```solidity
-struct Listing {
-  uint256 listingId;
-  address tokenOwner;
-  address assetContract;
-  uint256 tokenId;
-  uint256 startTime;
-  uint256 endTime;
-  uint256 quantity;
-  address currency;
-  uint256 reservePricePerToken;
-  uint256 buyoutPricePerToken;
-  enum IMarketplace.TokenType tokenType;
-  enum IMarketplace.ListingType listingType;
-}
-```
-
-### ListingAdded
-
-```solidity
-event ListingAdded(uint256 listingId, address assetContract, address lister, struct IMarketplace.Listing listing)
-```
-
-_Emitted when a new listing is created._
-
-### ListingUpdated
-
-```solidity
-event ListingUpdated(uint256 listingId, address listingCreator)
-```
-
-_Emitted when the parameters of a listing are updated._
-
-### ListingRemoved
-
-```solidity
-event ListingRemoved(uint256 listingId, address listingCreator)
-```
-
-_Emitted when a listing is cancelled._
-
-### NewSale
-
-```solidity
-event NewSale(uint256 listingId, address assetContract, address lister, address buyer, uint256 quantityBought, uint256 totalPricePaid)
-```
-
-_Emitted when a buyer buys from a direct listing, or a lister accepts some
-     buyer's offer to their direct listing._
-
-### NewOffer
-
-```solidity
-event NewOffer(uint256 listingId, address offeror, enum IMarketplace.ListingType listingType, uint256 quantityWanted, uint256 totalOfferAmount, address currency, uint256 expiredTimestamp)
-```
-
-_Emitted when (1) a new offer is made to a direct listing, or (2) when a new bid is made in an auction._
-
-### AuctionClosed
-
-```solidity
-event AuctionClosed(uint256 listingId, address closer, bool cancelled, address auctionCreator, address winningBidder)
-```
-
-_Emitted when an auction is closed._
-
-### AuctionBuffersUpdated
-
-```solidity
-event AuctionBuffersUpdated(uint256 timeBuffer, uint256 bidBufferBps)
-```
-
-_Emitted when auction buffers are updated._
-
-### createListing
-
-```solidity
-function createListing(struct IMarketplace.ListingParameters _params) external
-```
-
-@notice Lets a token owner list tokens (ERC 721 or ERC 1155) for sale in a direct listing, or an auction.
-
- @dev NFTs to list for sale in an auction are escrowed in Marketplace. For direct listings, the contract
-      only checks whether the listing's creator owns and has approved Marketplace to transfer the NFTs to list.
-
- @param _params The parameters that govern the listing to be created.
-
-### updateListing
-
-```solidity
-function updateListing(uint256 _listingId, uint256 _quantityToList, uint256 _reservePricePerToken, uint256 _buyoutPricePerToken, address _currencyToAccept, uint256 _startTime, uint256 _secondsUntilEndTime) external
-```
-
-@notice Lets a listing's creator edit the listing's parameters. A direct listing can be edited whenever.
-         An auction listing cannot be edited after the auction has started.
-
- @param _listingId            The uid of the lisitng to edit.
-
- @param _quantityToList       The amount of NFTs to list for sale in the listing. For direct lisitngs, the contract
-                              only checks whether the listing creator owns and has approved Marketplace to transfer
-                              `_quantityToList` amount of NFTs to list for sale. For auction listings, the contract
-                              ensures that exactly `_quantityToList` amount of NFTs to list are escrowed.
-
- @param _reservePricePerToken For direct listings: this value is ignored. For auctions: the minimum bid amount of
-                              the auction is `reservePricePerToken * quantityToList`
-
- @param _buyoutPricePerToken  For direct listings: interpreted as 'price per token' listed. For auctions: if
-                              `buyoutPricePerToken` is greater than 0, and a bidder's bid is at least as great as
-                              `buyoutPricePerToken * quantityToList`, the bidder wins the auction, and the auction
-                              is closed.
-
- @param _currencyToAccept     For direct listings: the currency in which a buyer must pay the listing's fixed price
-                              to buy the NFT(s). For auctions: the currency in which the bidders must make bids.
-
- @param _startTime            The unix timestamp after which listing is active. For direct listings:
-                              'active' means NFTs can be bought from the listing. For auctions,
-                              'active' means bids can be made in the auction.
-
- @param _secondsUntilEndTime  No. of seconds after the provided `_startTime`, after which the listing is inactive.
-                              For direct listings: 'inactive' means NFTs cannot be bought from the listing.
-                              For auctions: 'inactive' means bids can no longer be made in the auction.
-
-### cancelDirectListing
-
-```solidity
-function cancelDirectListing(uint256 _listingId) external
-```
-
-@notice Lets a direct listing creator cancel their listing.
-
- @param _listingId The unique Id of the lisitng to cancel.
-
-### buy
-
-```solidity
-function buy(uint256 _listingId, address _buyFor, uint256 _quantity, address _currency, uint256 _totalPrice) external payable
-```
-
-@notice Lets someone buy a given quantity of tokens from a direct listing by paying the fixed price.
-
- @param _listingId The uid of the direct lisitng to buy from.
- @param _buyFor The receiver of the NFT being bought.
- @param _quantity The amount of NFTs to buy from the direct listing.
- @param _currency The currency to pay the price in.
- @param _totalPrice The total price to pay for the tokens being bought.
-
- @dev A sale will fail to execute if either:
-         (1) buyer does not own or has not approved Marketplace to transfer the appropriate
-             amount of currency (or hasn't sent the appropriate amount of native tokens)
-
-         (2) the lister does not own or has removed Markeplace's
-             approval to transfer the tokens listed for sale.
-
-### offer
-
-```solidity
-function offer(uint256 _listingId, uint256 _quantityWanted, address _currency, uint256 _pricePerToken, uint256 _expirationTimestamp) external payable
-```
-
-@notice Lets someone make an offer to a direct listing or bid in an auction.
-
- @dev Each (address, listing ID) pair maps to a single unique offer. So e.g. if a buyer makes
-      makes two offers to the same direct listing, the last offer is counted as the buyer's
-      offer to that listing.
-
- @param _listingId        The unique ID of the lisitng to make an offer/bid to.
-
- @param _quantityWanted   For auction listings: the 'quantity wanted' is the total amount of NFTs
-                          being auctioned, regardless of the value of `_quantityWanted` passed.
-                          For direct listings: `_quantityWanted` is the quantity of NFTs from the
-                          listing, for which the offer is being made.
-
- @param _currency         For auction listings: the 'currency of the bid' is the currency accepted
-                          by the auction, regardless of the value of `_currency` passed. For direct
-                          listings: this is the currency in which the offer is made.
-
- @param _pricePerToken    For direct listings: offered price per token. For auction listings: the bid
-                          amount per token. The total offer/bid amount is `_quantityWanted * _pricePerToken`.
-
- @param _expirationTimestamp For aution listings: inapplicable. For direct listings: The timestamp after which
-                             the seller can no longer accept the offer.
-
-### acceptOffer
-
-```solidity
-function acceptOffer(uint256 _listingId, address _offeror, address _currency, uint256 _totalPrice) external
-```
-
-Lets a listing's creator accept an offer to their direct listing.
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| _listingId | uint256 | The unique ID of the listing for which to accept the offer. |
-| _offeror | address | The address of the buyer whose offer is to be accepted. |
-| _currency | address | The currency of the offer that is to be accepted. |
-| _totalPrice | uint256 | The total price of the offer that is to be accepted. |
-
-### closeAuction
-
-```solidity
-function closeAuction(uint256 _listingId, address _closeFor) external
-```
-
-@notice Lets any account close an auction on behalf of either the (1) auction's creator, or (2) winning bidder.
-             For (1): The auction creator is sent the the winning bid amount.
-             For (2): The winning bidder is sent the auctioned NFTs.
-
- @param _listingId The uid of the listing (the auction to close).
- @param _closeFor For whom the auction is being closed - the auction creator or winning bidder.
-
-## IWETH
-
-### deposit
-
-```solidity
-function deposit() external payable
-```
-
-### withdraw
-
-```solidity
-function withdraw(uint256 amount) external
-```
-
-## CurrencyTransferLib
-
-### NATIVE_TOKEN
-
-```solidity
-address NATIVE_TOKEN
-```
-
-_The address interpreted as native token of the chain._
-
-### transferCurrency
-
-```solidity
-function transferCurrency(address _currency, address _from, address _to, uint256 _amount) internal
-```
-
-_Transfers a given amount of currency._
-
-### transferCurrencyWithWrapper
-
-```solidity
-function transferCurrencyWithWrapper(address _currency, address _from, address _to, uint256 _amount, address _nativeTokenWrapper) internal
-```
-
-_Transfers a given amount of currency. (With native token wrapping)_
-
-### safeTransferERC20
-
-```solidity
-function safeTransferERC20(address _currency, address _from, address _to, uint256 _amount) internal
-```
-
-_Transfer `amount` of ERC20 token from `from` to `to`._
-
-### safeTransferNativeToken
-
-```solidity
-function safeTransferNativeToken(address to, uint256 value) internal
-```
-
-_Transfers `amount` of native token to `to`._
-
-### safeTransferNativeTokenWithWrapper
-
-```solidity
-function safeTransferNativeTokenWithWrapper(address to, uint256 value, address _nativeTokenWrapper) internal
-```
-
-_Transfers `amount` of native token to `to`. (With native token wrapping)_
-
-## FeeType
-
-### PRIMARY_SALE
-
-```solidity
-uint256 PRIMARY_SALE
-```
-
-### MARKET_SALE
-
-```solidity
-uint256 MARKET_SALE
-```
-
-### SPLIT
-
-```solidity
-uint256 SPLIT
 ```
 
 ## TokenFactory
@@ -978,6 +228,52 @@ function _msgSender() internal view virtual returns (address sender)
 
 ```solidity
 function _msgData() internal view virtual returns (bytes)
+```
+
+## ERC2771ContextUpgradeable
+
+_Context variant with ERC2771 support._
+
+### _trustedForwarder
+
+```solidity
+mapping(address => bool) _trustedForwarder
+```
+
+### __ERC2771Context_init
+
+```solidity
+function __ERC2771Context_init(address[] trustedForwarder) internal
+```
+
+### __ERC2771Context_init_unchained
+
+```solidity
+function __ERC2771Context_init_unchained(address[] trustedForwarder) internal
+```
+
+### isTrustedForwarder
+
+```solidity
+function isTrustedForwarder(address forwarder) public view virtual returns (bool)
+```
+
+### _msgSender
+
+```solidity
+function _msgSender() internal view virtual returns (address sender)
+```
+
+### _msgData
+
+```solidity
+function _msgData() internal view virtual returns (bytes)
+```
+
+### __gap
+
+```solidity
+uint256[49] __gap
 ```
 
 ## ERC1155Drop
@@ -1765,6 +1061,32 @@ event OwnerUpdated(address prevOwner, address newOwner)
 
 _Emitted when a new Owner is set._
 
+## IPlatformFee
+
+### getPlatformFeeInfo
+
+```solidity
+function getPlatformFeeInfo() external view returns (address, uint16)
+```
+
+_Returns the platform fee bps and recipient._
+
+### setPlatformFeeInfo
+
+```solidity
+function setPlatformFeeInfo(address _platformFeeRecipient, uint256 _platformFeeBps) external
+```
+
+_Lets a module admin update the fees on primary sales._
+
+### PlatformFeeInfoUpdated
+
+```solidity
+event PlatformFeeInfoUpdated(address platformFeeRecipient, uint256 platformFeeBps)
+```
+
+_Emitted when fee on primary sales is updated._
+
 ## IPrimarySale
 
 ### primarySaleRecipient
@@ -1899,6 +1221,90 @@ function _setOwner(address _newOwner) internal virtual
 
 _Lets a module admin set a new owner for the contract. The new owner must be a module admin.
 Internal function without access restriction._
+
+## PlatformFeeUpgradeable
+
+### MAX_BPS
+
+```solidity
+uint256 MAX_BPS
+```
+
+_Max BPS_
+
+### _platformFeeRecipient
+
+```solidity
+address _platformFeeRecipient
+```
+
+_The adress that receives all primary sales value._
+
+### _platformFeeBps
+
+```solidity
+uint128 _platformFeeBps
+```
+
+_The % of primary sales collected by the contract as fees._
+
+### isValidBPS
+
+```solidity
+modifier isValidBPS(uint256 _bps)
+```
+
+### __PlatformFee_init
+
+```solidity
+function __PlatformFee_init(address _recipient, uint128 _bps) internal
+```
+
+_Initializes the contract setting the given args as platform fee info._
+
+### __PlatformFee_init_unchained
+
+```solidity
+function __PlatformFee_init_unchained(address _recipient, uint128 _bps) internal
+```
+
+### platformFeeRecipient
+
+```solidity
+function platformFeeRecipient() public view virtual returns (address)
+```
+
+_Returns the address of the platform fee recipient._
+
+### platformFeeBps
+
+```solidity
+function platformFeeBps() public view virtual returns (uint128)
+```
+
+_Returns the % of platform fee collected by the contract as fees._
+
+### getPlatformFeeInfo
+
+```solidity
+function getPlatformFeeInfo() external view virtual returns (address, uint16)
+```
+
+_Returns the platform fee bps and recipient._
+
+### setPlatformFeeInfo
+
+```solidity
+function setPlatformFeeInfo(address _recipient, uint256 _bps) external virtual
+```
+
+_Lets a module admin update the fees on primary sales._
+
+### _setPlatformFeeInfo
+
+```solidity
+function _setPlatformFeeInfo(address _recipient, uint128 _bps) internal virtual
+```
 
 ## PrimarySaleUpgradeable
 
@@ -2069,6 +1475,131 @@ Internal function without access restriction._
 function supportsInterface(bytes4 interfaceId) public view virtual returns (bool)
 ```
 
+## IContractFactory
+
+### ProxyDeployed
+
+```solidity
+event ProxyDeployed(bytes32 contractType, bytes data, address proxy, address deployer)
+```
+
+_Emitted when a proxy is deployed._
+
+### ImplementationAdded
+
+```solidity
+event ImplementationAdded(address implementation, bytes32 contractType, uint256 version)
+```
+
+_Emitted when a new version of implementation is added._
+
+### ImplementationApproved
+
+```solidity
+event ImplementationApproved(address implementation, bool isApproved)
+```
+
+_Emitted when an implementation is approved._
+
+### registry
+
+```solidity
+function registry() external returns (address)
+```
+
+### deployProxy
+
+```solidity
+function deployProxy(bytes32 _type, bytes _data) external returns (address)
+```
+
+### deployProxyDeterministic
+
+```solidity
+function deployProxyDeterministic(bytes32 _type, bytes _data, bytes32 _salt) external returns (address)
+```
+
+### deployProxyByImplementation
+
+```solidity
+function deployProxyByImplementation(address implementation, bytes32 _type, bytes data, bytes32 salt) external returns (address)
+```
+
+@notice Deploys a proxy that points to that points to the given implementation.
+ @param implementation           Address of the implementation to point to.
+ @param data                     Additional data to pass to the proxy constructor or any other data useful during deployement.
+ @param salt                     Salt to use for the deterministic address generation.
+
+### addImplementation
+
+```solidity
+function addImplementation(address _implementation) external
+```
+
+### approveImplementation
+
+```solidity
+function approveImplementation(address _implementation, bool _toApprove) external
+```
+
+### getImplementation
+
+```solidity
+function getImplementation(bytes32 _type, uint256 _version) external view returns (address)
+```
+
+### getLatestImplementation
+
+```solidity
+function getLatestImplementation(bytes32 _type) external view returns (address)
+```
+
+## IContractRegistry
+
+### Added
+
+```solidity
+event Added(address deployer, address deployment)
+```
+
+### Deleted
+
+```solidity
+event Deleted(address deployer, address deployment)
+```
+
+### add
+
+```solidity
+function add(address _deployer, address _deployment) external
+```
+
+Add a deployment for a deployer.
+
+### remove
+
+```solidity
+function remove(address _deployer, address _deployment) external
+```
+
+Remove a deployment for a deployer.
+
+### getDeployments
+
+```solidity
+function getDeployments(address _deployer) external view returns (address[] deployments)
+```
+
+Get all deployments for a deployer.
+
+### count
+
+```solidity
+function count(address _deployer) external view returns (uint256 deploymentCount)
+```
+
+Get the total number of deployments for a deployer.
+
 ## IMetadata
 
 ### contractType
@@ -2133,6 +1664,20 @@ function newToken(enum ITokenFactory.TokenType tokenType, address _defaultAdmin,
 
 ```solidity
 function newToken(enum ITokenFactory.TokenType tokenType, bytes data) external returns (address token)
+```
+
+## IWETH
+
+### deposit
+
+```solidity
+function deposit() external payable
+```
+
+### withdraw
+
+```solidity
+function withdraw(uint256 amount) external
 ```
 
 ## IClaimCondition
@@ -2213,6 +1758,14 @@ event SaleRecipientForTokenUpdated(uint256 tokenId, address saleRecipient)
 ```
 
 _Emitted when the sale recipient for a particular tokenId is updated._
+
+### ClaimConditionsUpdated
+
+```solidity
+event ClaimConditionsUpdated(uint256 tokenId, uint256 currentStartId, uint256 count, bool resetClaimEligibility)
+```
+
+_Emitted when the claim conditions is updated._
 
 ### lazyMint
 
@@ -2307,6 +1860,14 @@ event MaxWalletClaimCountUpdated(uint256 count)
 ```
 
 _Emitted when the global max wallet claim count is updated._
+
+### ClaimConditionsUpdated
+
+```solidity
+event ClaimConditionsUpdated(uint256 currentStartId, uint256 count, bool resetClaimEligibility)
+```
+
+_Emitted when the claim conditions is updated._
 
 ### lazyMint
 
@@ -2502,6 +2063,76 @@ function mintWithSignature(struct IERC721Token.MintRequest req, bytes signature)
 
  @param req The mint request.
  @param signature he signature produced by an account signing the mint request.
+
+## CurrencyTransferLib
+
+### NATIVE_TOKEN
+
+```solidity
+address NATIVE_TOKEN
+```
+
+_The address interpreted as native token of the chain._
+
+### transferCurrency
+
+```solidity
+function transferCurrency(address _currency, address _from, address _to, uint256 _amount) internal
+```
+
+_Transfers a given amount of currency._
+
+### transferCurrencyWithWrapper
+
+```solidity
+function transferCurrencyWithWrapper(address _currency, address _from, address _to, uint256 _amount, address _nativeTokenWrapper) internal
+```
+
+_Transfers a given amount of currency. (With native token wrapping)_
+
+### safeTransferERC20
+
+```solidity
+function safeTransferERC20(address _currency, address _from, address _to, uint256 _amount) internal
+```
+
+_Transfer `amount` of ERC20 token from `from` to `to`._
+
+### safeTransferNativeToken
+
+```solidity
+function safeTransferNativeToken(address to, uint256 value) internal
+```
+
+_Transfers `amount` of native token to `to`._
+
+### safeTransferNativeTokenWithWrapper
+
+```solidity
+function safeTransferNativeTokenWithWrapper(address to, uint256 value, address _nativeTokenWrapper) internal
+```
+
+_Transfers `amount` of native token to `to`. (With native token wrapping)_
+
+## FeeType
+
+### PRIMARY_SALE
+
+```solidity
+uint256 PRIMARY_SALE
+```
+
+### MARKET_SALE
+
+```solidity
+uint256 MARKET_SALE
+```
+
+### SPLIT
+
+```solidity
+uint256 SPLIT
+```
 
 ## MerkleProof
 
@@ -3024,124 +2655,360 @@ function _msgSender() internal view virtual returns (address sender)
 function _msgData() internal view virtual returns (bytes)
 ```
 
-## ContractFactory
+## Marketplace
 
-_ContractFactory contract definition
-IContractFactory: ContractFactory contract interface which contains data structs, event definitions, functions signature
-ERC2771Context: support for meta transactions, useful for onboarding new users mint, list NFT without upfront gas
-Multicall: batch together multiple calls in a single external call
-AccessControlEnumerable: implement role-based access control mechanisms, more robust than Ownable_
+_Marketplace contract definition
+IMarketplace: Marketplace contract interface which contains data structs, event definitions, functions signature
+Initializable: a base contract to aid in writing UPGRADEABLE contracts
+UUPSUpgradeable: allow to perform an upgrade of an ERC1967Proxy using UUPS proxies.
+ReentrancyGuardUpgradeable: prevent reentrant calls to a function
+ERC2771ContextUpgradeable: support for meta transactions, useful for onboarding new users mint, list NFT without upfront gas
+AccessControlEnumerableUpgradeable: implement role-based access control mechanisms, more robust than Ownable
+IERC721ReceiverUpgradeable: NFT token receiver interface (IERC721)
+IERC1155ReceiverUpgradeable: Semi-fungible token receiver interface (IERC1155)_
 
-### FACTORY_ROLE
-
-```solidity
-bytes32 FACTORY_ROLE
-```
-
-_Only FACTORY_ROLE holders can approve/unapprove implementations for proxies to point to._
-
-### registry
+### LISTER_ROLE
 
 ```solidity
-address registry
+bytes32 LISTER_ROLE
 ```
 
-_The contract registry address_
+_Only lister role holders can create listings, when listings are restricted by lister address._
 
-### approvals
+### ASSET_ROLE
 
 ```solidity
-mapping(address => bool) approvals
+bytes32 ASSET_ROLE
 ```
 
-_mapping of implementation address to deployment approval_
+_Only assets from NFT contracts with asset role can be listed, when listings are restricted by asset address._
 
-### currentVersion
+### MAX_BPS
 
 ```solidity
-mapping(bytes32 => uint256) currentVersion
+uint16 MAX_BPS
 ```
 
-_mapping of implementation address to implementation added version_
+_The max bps of the contract. So, 10_000 == 100 %_
 
-### implementations
+### STARTTIME_BUFFER
 
 ```solidity
-mapping(bytes32 => mapping(uint256 => address)) implementations
+uint256 STARTTIME_BUFFER
 ```
 
-_mapping of contract type to contract version to implementation address_
+_The time buffer start listing in the past_
 
-### deployers
+### nativeTokenWrapper
 
 ```solidity
-mapping(address => address) deployers
+address nativeTokenWrapper
 ```
 
-_mapping of proxy address to deployer address_
+_The address of the native token wrapper contract._
+
+### contractURI
+
+```solidity
+string contractURI
+```
+
+_Contract level metadata._
+
+### totalListings
+
+```solidity
+uint256 totalListings
+```
+
+_Total number of listings ever created in the marketplace._
+
+### timeBuffer
+
+```solidity
+uint64 timeBuffer
+```
+
+@dev The amount of time added to an auction's 'endTime', if a bid is made within `timeBuffer`
+      seconds of the existing `endTime`. Default: 15 minutes.
+
+### bidBufferBps
+
+```solidity
+uint64 bidBufferBps
+```
+
+_The minimum % increase required from the previous winning bid. Default: 5%._
+
+### listings
+
+```solidity
+mapping(uint256 => struct IMarketplace.Listing) listings
+```
+
+_Mapping from uid of listing => listing info._
+
+### offers
+
+```solidity
+mapping(uint256 => mapping(address => struct IMarketplace.Offer)) offers
+```
+
+_Mapping from uid of a direct listing => offeror address => offer made to the direct listing by the respective offeror._
+
+### winningBid
+
+```solidity
+mapping(uint256 => struct IMarketplace.Offer) winningBid
+```
+
+_Mapping from uid of an auction listing => current winning bid in an auction._
+
+### onlyListingCreator
+
+```solidity
+modifier onlyListingCreator(uint256 _listingId)
+```
+
+_Checks whether caller is a listing creator._
+
+### onlyExistingListing
+
+```solidity
+modifier onlyExistingListing(uint256 _listingId)
+```
+
+_Checks whether a listing exists._
 
 ### constructor
 
 ```solidity
-constructor(address _trustForwarder, address _registry) public
+constructor(address _nativeTokenWrapper) public
 ```
 
-### deployProxy
+### initialize
 
 ```solidity
-function deployProxy(bytes32 _type, bytes _data) external returns (address)
+function initialize(address _defaultAdmin, string _contractURI, address[] _trustedForwarders, address _platformFeeRecipient, uint256 _platformFeeBps) external
 ```
 
-_Deploys a proxy that points to the latest version of the given contract type._
+_Initiliazes the contract, like a constructor._
 
-### deployProxyDeterministic
+### receive
 
 ```solidity
-function deployProxyDeterministic(bytes32 _type, bytes _data, bytes32 _salt) public returns (address)
+receive() external payable
 ```
 
-@dev Deploys a proxy at a deterministic address by taking in `salt` as a parameter.
-      Proxy points to the latest version of the given contract type.
+_Lets the contract receives native tokens from `nativeTokenWrapper` withdraw._
 
-### deployProxyByImplementation
+### setContractURI
 
 ```solidity
-function deployProxyByImplementation(address _implementation, bytes _data, bytes32 _salt) public returns (address deployedProxy)
+function setContractURI(string _uri) external
 ```
 
-_Deploys a proxy that points to the given implementation._
+_Lets a module admin set the URI for contract-level metadata._
 
-### addImplementation
+### onERC1155Received
 
 ```solidity
-function addImplementation(address _implementation) external
+function onERC1155Received(address, address, uint256, uint256, bytes) public virtual returns (bytes4)
 ```
 
-_Lets a contract admin set the address of a contract type x version._
-
-### approveImplementation
+### onERC1155BatchReceived
 
 ```solidity
-function approveImplementation(address _implementation, bool _toApprove) external
+function onERC1155BatchReceived(address, address, uint256[], uint256[], bytes) public virtual returns (bytes4)
 ```
 
-_Lets a contract admin approve a specific contract for deployment._
-
-### getImplementation
+### onERC721Received
 
 ```solidity
-function getImplementation(bytes32 _type, uint256 _version) external view returns (address)
+function onERC721Received(address, address, uint256, bytes) external pure returns (bytes4)
 ```
 
-_Returns the implementation given a contract type and version._
-
-### getLatestImplementation
+### supportsInterface
 
 ```solidity
-function getLatestImplementation(bytes32 _type) external view returns (address)
+function supportsInterface(bytes4 interfaceId) public view virtual returns (bool)
 ```
 
-_Returns the latest implementation given a contract type._
+### createListing
+
+```solidity
+function createListing(struct IMarketplace.ListingParameters _params) external
+```
+
+_Lets a token owner list tokens for sale: Direct Listing or Auction._
+
+### updateListing
+
+```solidity
+function updateListing(uint256 _listingId, uint256 _quantityToList, uint256 _reservePricePerToken, uint256 _buyoutPricePerToken, address _currencyToAccept, uint256 _startTime, uint256 _secondsUntilEndTime) external
+```
+
+_Lets a listing's creator edit the listing's parameters._
+
+### cancelDirectListing
+
+```solidity
+function cancelDirectListing(uint256 _listingId) external
+```
+
+_Lets a direct listing creator cancel their listing._
+
+### buy
+
+```solidity
+function buy(uint256 _listingId, address _buyFor, uint256 _quantityToBuy, address _currency, uint256 _totalPrice) external payable
+```
+
+_Lets an account buy a given quantity of tokens from a direct listing._
+
+### acceptOffer
+
+```solidity
+function acceptOffer(uint256 _listingId, address _offeror, address _currency, uint256 _pricePerToken) external
+```
+
+_Lets a listing's creator accept an offer for their direct listing._
+
+### executeSale
+
+```solidity
+function executeSale(struct IMarketplace.Listing _targetListing, address _payer, address _receiver, address _currency, uint256 _currencyAmountToTransfer, uint256 _listingTokenAmountToTransfer) internal
+```
+
+_Performs a direct listing sale._
+
+### offer
+
+```solidity
+function offer(uint256 _listingId, uint256 _quantityWanted, address _currency, uint256 _pricePerToken, uint256 _expirationTimestamp) external payable
+```
+
+_Lets an account make an offer to a direct listing._
+
+### handleOffer
+
+```solidity
+function handleOffer(struct IMarketplace.Listing _targetListing, struct IMarketplace.Offer _newOffer) internal
+```
+
+_Processes a new offer to a direct listing._
+
+### handleBid
+
+```solidity
+function handleBid(struct IMarketplace.Listing _targetListing, struct IMarketplace.Offer _incomingBid) internal
+```
+
+_Processes an incoming bid in an auction._
+
+### isNewWinningBid
+
+```solidity
+function isNewWinningBid(uint256 _reserveAmount, uint256 _currentWinningBidAmount, uint256 _incomingBidAmount) internal view returns (bool isValidNewBid)
+```
+
+_Checks whether an incoming bid is the new current highest bid._
+
+### closeAuction
+
+```solidity
+function closeAuction(uint256 _listingId, address _closeFor) external
+```
+
+_Lets an account close an auction for eit her the (1) winning bidder, or (2) auction creator._
+
+### _cancelAuction
+
+```solidity
+function _cancelAuction(struct IMarketplace.Listing _targetListing) internal
+```
+
+_Cancels an auction._
+
+### _closeAuctionForAuctionCreator
+
+```solidity
+function _closeAuctionForAuctionCreator(struct IMarketplace.Listing _targetListing, struct IMarketplace.Offer _winningBid) internal
+```
+
+_Closes an auction for an auction creator; distributes winning bid amount to auction creator._
+
+### _closeAuctionForBidder
+
+```solidity
+function _closeAuctionForBidder(struct IMarketplace.Listing _targetListing, struct IMarketplace.Offer _winningBid) internal
+```
+
+_Closes an auction for the winning bidder; distributes auction items to the winning bidder._
+
+### setAuctionBuffers
+
+```solidity
+function setAuctionBuffers(uint256 _timeBuffer, uint256 _bidBufferBps) external
+```
+
+_Lets a contract admin set auction buffers._
+
+### transferListingTokens
+
+```solidity
+function transferListingTokens(enum IMarketplace.TokenType tokenType, address _assetContract, address _from, address _to, uint256 _tokenId, uint256 _quantity) internal
+```
+
+_Transfers tokens listed for sale in a direct or auction listing._
+
+### payout
+
+```solidity
+function payout(address _payer, address _payee, address _currencyToUse, uint256 _totalPayoutAmount, struct IMarketplace.Listing _listing) internal
+```
+
+_Pays out stakeholders in a sale._
+
+### validateOwnershipAndApproval
+
+```solidity
+function validateOwnershipAndApproval(enum IMarketplace.TokenType _tokenType, address _tokenOwner, address _assetContract, uint256 _tokenId, uint256 _quantity) internal view
+```
+
+_Validates that `_tokenOwner` owns and has approved Market to transfer NFTs._
+
+### validateERC20BalAndAllowance
+
+```solidity
+function validateERC20BalAndAllowance(address _addrToCheck, address _currency, uint256 _currencyAmountToCheckAgainst) internal view
+```
+
+_Validates that `_addrToCheck` owns and has approved markeplace to transfer the appropriate amount of currency_
+
+### validateDirectListingSale
+
+```solidity
+function validateDirectListingSale(struct IMarketplace.Listing _listing, address _payer, uint256 _quantityToBuy, address _currency, uint256 settledTotalPrice) internal
+```
+
+_Validates conditions of a direct listing sale._
+
+### getTokenType
+
+```solidity
+function getTokenType(address _assetContract) internal view returns (enum IMarketplace.TokenType tokenType)
+```
+
+_Returns the interface supported by a contract._
+
+### getSafeQuantity
+
+```solidity
+function getSafeQuantity(enum IMarketplace.TokenType _tokenType, uint256 _quantityToCheck) internal pure returns (uint256 safeQuantity)
+```
+
+_Enforces quantity == 1 if tokenType is TokenType.ERC721._
 
 ### _msgSender
 
@@ -3154,6 +3021,296 @@ function _msgSender() internal view virtual returns (address sender)
 ```solidity
 function _msgData() internal view virtual returns (bytes)
 ```
+
+### _authorizeUpgrade
+
+```solidity
+function _authorizeUpgrade(address newImplementation) internal virtual
+```
+
+_Function that should revert when `msg.sender` is not authorized to upgrade the contract. Called by
+{upgradeTo} and {upgradeToAndCall}.
+
+Normally, this function will use an xref:access.adoc[access control] modifier such as {Ownable-onlyOwner}.
+
+```solidity
+function _authorizeUpgrade(address) internal override onlyOwner {}
+```_
+
+### _isListingCreator
+
+```solidity
+function _isListingCreator(uint256 _listingId) internal view
+```
+
+### _isListingExists
+
+```solidity
+function _isListingExists(uint256 _listingId) internal view
+```
+
+## IMarketplace
+
+### TokenType
+
+```solidity
+enum TokenType {
+  ERC1155,
+  ERC721
+}
+```
+
+### ListingType
+
+```solidity
+enum ListingType {
+  Direct,
+  Auction
+}
+```
+
+### Offer
+
+```solidity
+struct Offer {
+  uint256 listingId;
+  address offeror;
+  uint256 quantityWanted;
+  address currency;
+  uint256 pricePerToken;
+  uint256 expirationTimestamp;
+}
+```
+
+### ListingParameters
+
+```solidity
+struct ListingParameters {
+  address assetContract;
+  uint256 tokenId;
+  uint256 startTime;
+  uint256 secondsUntilEndTime;
+  uint256 quantityToList;
+  address currencyToAccept;
+  uint256 reservePricePerToken;
+  uint256 buyoutPricePerToken;
+  enum IMarketplace.ListingType listingType;
+}
+```
+
+### Listing
+
+```solidity
+struct Listing {
+  uint256 listingId;
+  address tokenOwner;
+  address assetContract;
+  uint256 tokenId;
+  uint256 startTime;
+  uint256 endTime;
+  uint256 quantity;
+  address currency;
+  uint256 reservePricePerToken;
+  uint256 buyoutPricePerToken;
+  enum IMarketplace.TokenType tokenType;
+  enum IMarketplace.ListingType listingType;
+}
+```
+
+### ListingAdded
+
+```solidity
+event ListingAdded(uint256 listingId, address assetContract, address lister, struct IMarketplace.Listing listing)
+```
+
+_Emitted when a new listing is created._
+
+### ListingUpdated
+
+```solidity
+event ListingUpdated(uint256 listingId, address listingCreator)
+```
+
+_Emitted when the parameters of a listing are updated._
+
+### ListingRemoved
+
+```solidity
+event ListingRemoved(uint256 listingId, address listingCreator)
+```
+
+_Emitted when a listing is cancelled._
+
+### NewSale
+
+```solidity
+event NewSale(uint256 listingId, address assetContract, address lister, address buyer, uint256 quantityBought, uint256 totalPricePaid)
+```
+
+_Emitted when a buyer buys from a direct listing, or a lister accepts some
+     buyer's offer to their direct listing._
+
+### NewOffer
+
+```solidity
+event NewOffer(uint256 listingId, address offeror, enum IMarketplace.ListingType listingType, uint256 quantityWanted, uint256 totalOfferAmount, address currency, uint256 expiredTimestamp)
+```
+
+_Emitted when (1) a new offer is made to a direct listing, or (2) when a new bid is made in an auction._
+
+### AuctionClosed
+
+```solidity
+event AuctionClosed(uint256 listingId, address closer, bool cancelled, address auctionCreator, address winningBidder)
+```
+
+_Emitted when an auction is closed._
+
+### AuctionBuffersUpdated
+
+```solidity
+event AuctionBuffersUpdated(uint256 timeBuffer, uint256 bidBufferBps)
+```
+
+_Emitted when auction buffers are updated._
+
+### createListing
+
+```solidity
+function createListing(struct IMarketplace.ListingParameters _params) external
+```
+
+@notice Lets a token owner list tokens (ERC 721 or ERC 1155) for sale in a direct listing, or an auction.
+
+ @dev NFTs to list for sale in an auction are escrowed in Marketplace. For direct listings, the contract
+      only checks whether the listing's creator owns and has approved Marketplace to transfer the NFTs to list.
+
+ @param _params The parameters that govern the listing to be created.
+
+### updateListing
+
+```solidity
+function updateListing(uint256 _listingId, uint256 _quantityToList, uint256 _reservePricePerToken, uint256 _buyoutPricePerToken, address _currencyToAccept, uint256 _startTime, uint256 _secondsUntilEndTime) external
+```
+
+@notice Lets a listing's creator edit the listing's parameters. A direct listing can be edited whenever.
+         An auction listing cannot be edited after the auction has started.
+
+ @param _listingId            The uid of the lisitng to edit.
+
+ @param _quantityToList       The amount of NFTs to list for sale in the listing. For direct lisitngs, the contract
+                              only checks whether the listing creator owns and has approved Marketplace to transfer
+                              `_quantityToList` amount of NFTs to list for sale. For auction listings, the contract
+                              ensures that exactly `_quantityToList` amount of NFTs to list are escrowed.
+
+ @param _reservePricePerToken For direct listings: this value is ignored. For auctions: the minimum bid amount of
+                              the auction is `reservePricePerToken * quantityToList`
+
+ @param _buyoutPricePerToken  For direct listings: interpreted as 'price per token' listed. For auctions: if
+                              `buyoutPricePerToken` is greater than 0, and a bidder's bid is at least as great as
+                              `buyoutPricePerToken * quantityToList`, the bidder wins the auction, and the auction
+                              is closed.
+
+ @param _currencyToAccept     For direct listings: the currency in which a buyer must pay the listing's fixed price
+                              to buy the NFT(s). For auctions: the currency in which the bidders must make bids.
+
+ @param _startTime            The unix timestamp after which listing is active. For direct listings:
+                              'active' means NFTs can be bought from the listing. For auctions,
+                              'active' means bids can be made in the auction.
+
+ @param _secondsUntilEndTime  No. of seconds after the provided `_startTime`, after which the listing is inactive.
+                              For direct listings: 'inactive' means NFTs cannot be bought from the listing.
+                              For auctions: 'inactive' means bids can no longer be made in the auction.
+
+### cancelDirectListing
+
+```solidity
+function cancelDirectListing(uint256 _listingId) external
+```
+
+@notice Lets a direct listing creator cancel their listing.
+
+ @param _listingId The unique Id of the lisitng to cancel.
+
+### buy
+
+```solidity
+function buy(uint256 _listingId, address _buyFor, uint256 _quantity, address _currency, uint256 _totalPrice) external payable
+```
+
+@notice Lets someone buy a given quantity of tokens from a direct listing by paying the fixed price.
+
+ @param _listingId The uid of the direct lisitng to buy from.
+ @param _buyFor The receiver of the NFT being bought.
+ @param _quantity The amount of NFTs to buy from the direct listing.
+ @param _currency The currency to pay the price in.
+ @param _totalPrice The total price to pay for the tokens being bought.
+
+ @dev A sale will fail to execute if either:
+         (1) buyer does not own or has not approved Marketplace to transfer the appropriate
+             amount of currency (or hasn't sent the appropriate amount of native tokens)
+
+         (2) the lister does not own or has removed Markeplace's
+             approval to transfer the tokens listed for sale.
+
+### offer
+
+```solidity
+function offer(uint256 _listingId, uint256 _quantityWanted, address _currency, uint256 _pricePerToken, uint256 _expirationTimestamp) external payable
+```
+
+@notice Lets someone make an offer to a direct listing or bid in an auction.
+
+ @dev Each (address, listing ID) pair maps to a single unique offer. So e.g. if a buyer makes
+      makes two offers to the same direct listing, the last offer is counted as the buyer's
+      offer to that listing.
+
+ @param _listingId        The unique ID of the lisitng to make an offer/bid to.
+
+ @param _quantityWanted   For auction listings: the 'quantity wanted' is the total amount of NFTs
+                          being auctioned, regardless of the value of `_quantityWanted` passed.
+                          For direct listings: `_quantityWanted` is the quantity of NFTs from the
+                          listing, for which the offer is being made.
+
+ @param _currency         For auction listings: the 'currency of the bid' is the currency accepted
+                          by the auction, regardless of the value of `_currency` passed. For direct
+                          listings: this is the currency in which the offer is made.
+
+ @param _pricePerToken    For direct listings: offered price per token. For auction listings: the bid
+                          amount per token. The total offer/bid amount is `_quantityWanted * _pricePerToken`.
+
+ @param _expirationTimestamp For aution listings: inapplicable. For direct listings: The timestamp after which
+                             the seller can no longer accept the offer.
+
+### acceptOffer
+
+```solidity
+function acceptOffer(uint256 _listingId, address _offeror, address _currency, uint256 _totalPrice) external
+```
+
+Lets a listing's creator accept an offer to their direct listing.
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _listingId | uint256 | The unique ID of the listing for which to accept the offer. |
+| _offeror | address | The address of the buyer whose offer is to be accepted. |
+| _currency | address | The currency of the offer that is to be accepted. |
+| _totalPrice | uint256 | The total price of the offer that is to be accepted. |
+
+### closeAuction
+
+```solidity
+function closeAuction(uint256 _listingId, address _closeFor) external
+```
+
+@notice Lets any account close an auction on behalf of either the (1) auction's creator, or (2) winning bidder.
+             For (1): The auction creator is sent the the winning bid amount.
+             For (2): The winning bidder is sent the auctioned NFTs.
+
+ @param _listingId The uid of the listing (the auction to close).
+ @param _closeFor For whom the auction is being closed - the auction creator or winning bidder.
 
 ## ContractRegistry
 
@@ -3724,131 +3881,6 @@ function lazyMint(uint256 _amount, string _baseURIForTokens, bytes _extraData) e
  @param _extraData        Additional bytes data to be used at the discretion of the consumer of the contract.
 
  @return batchId         A unique integer identifier for the batch of NFTs lazy minted together.
-
-## IContractFactory
-
-### ProxyDeployed
-
-```solidity
-event ProxyDeployed(address implementation, address proxy, address deployer)
-```
-
-_Emitted when a proxy is deployed._
-
-### ImplementationAdded
-
-```solidity
-event ImplementationAdded(address implementation, bytes32 contractType, uint256 version)
-```
-
-_Emitted when a new version of implementation is added._
-
-### ImplementationApproved
-
-```solidity
-event ImplementationApproved(address implementation, bool isApproved)
-```
-
-_Emitted when an implementation is approved._
-
-### registry
-
-```solidity
-function registry() external returns (address)
-```
-
-### deployProxy
-
-```solidity
-function deployProxy(bytes32 _type, bytes _data) external returns (address)
-```
-
-### deployProxyDeterministic
-
-```solidity
-function deployProxyDeterministic(bytes32 _type, bytes _data, bytes32 _salt) external returns (address)
-```
-
-### deployProxyByImplementation
-
-```solidity
-function deployProxyByImplementation(address implementation, bytes data, bytes32 salt) external returns (address)
-```
-
-@notice Deploys a proxy that points to that points to the given implementation.
- @param implementation           Address of the implementation to point to.
- @param data                     Additional data to pass to the proxy constructor or any other data useful during deployement.
- @param salt                     Salt to use for the deterministic address generation.
-
-### addImplementation
-
-```solidity
-function addImplementation(address _implementation) external
-```
-
-### approveImplementation
-
-```solidity
-function approveImplementation(address _implementation, bool _toApprove) external
-```
-
-### getImplementation
-
-```solidity
-function getImplementation(bytes32 _type, uint256 _version) external view returns (address)
-```
-
-### getLatestImplementation
-
-```solidity
-function getLatestImplementation(bytes32 _type) external view returns (address)
-```
-
-## IContractRegistry
-
-### Added
-
-```solidity
-event Added(address deployer, address deployment)
-```
-
-### Deleted
-
-```solidity
-event Deleted(address deployer, address deployment)
-```
-
-### add
-
-```solidity
-function add(address _deployer, address _deployment) external
-```
-
-Add a deployment for a deployer.
-
-### remove
-
-```solidity
-function remove(address _deployer, address _deployment) external
-```
-
-Remove a deployment for a deployer.
-
-### getDeployments
-
-```solidity
-function getDeployments(address _deployer) external view returns (address[] deployments)
-```
-
-Get all deployments for a deployer.
-
-### count
-
-```solidity
-function count(address _deployer) external view returns (uint256 deploymentCount)
-```
-
-Get the total number of deployments for a deployer.
 
 ## MinimalForwarderMock
 

@@ -76,12 +76,13 @@ contract ContractFactory is IContractFactory, ERC2771Context, Multicall, AccessC
         bytes32 _salt
     ) public override returns (address) {
         address _implementation = implementations[_type][currentVersion[_type]];
-        return deployProxyByImplementation(_implementation, _data, _salt);
+        return deployProxyByImplementation(_implementation, _type, _data, _salt);
     }
 
     /// @dev Deploys a proxy that points to the given implementation.
     function deployProxyByImplementation(
         address _implementation,
+        bytes32 _type,
         bytes memory _data,
         bytes32 _salt
     ) public override returns (address deployedProxy) {
@@ -92,7 +93,7 @@ contract ContractFactory is IContractFactory, ERC2771Context, Multicall, AccessC
 
         deployers[deployedProxy] = _msgSender();
 
-        emit ProxyDeployed(_implementation, deployedProxy, _msgSender());
+        emit ProxyDeployed(_type, _data, deployedProxy, _msgSender());
 
         IContractRegistry(registry).add(_msgSender(), deployedProxy);
 

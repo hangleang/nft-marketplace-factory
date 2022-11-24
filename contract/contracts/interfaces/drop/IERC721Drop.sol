@@ -34,6 +34,9 @@ interface IERC721Drop is IMetadata, IERC721Upgradeable, IClaimCondition {
     /// @dev Emitted when the global max wallet claim count is updated.
     event MaxWalletClaimCountUpdated(uint256 count);
 
+    /// @dev Emitted when the claim conditions is updated.
+    event ClaimConditionsUpdated(uint256 currentStartId, uint256 count, bool resetClaimEligibility);
+
     /**
      *  @notice Lets an account with `MINTER_ROLE` lazy mint 'n' NFTs.
      *          The URIs for each token is the provided `_baseURIForTokens` + `{tokenId}`.

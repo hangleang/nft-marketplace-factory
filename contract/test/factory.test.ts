@@ -62,7 +62,7 @@ describe("Factory", () => {
     const salt = ethers.utils.formatBytes32String((await rigistry.count(creator.address)).toString());
     const deployTxn = factory
       .connect(creator)
-      .deployProxyByImplementation(erc721TokenImpl.address, encodedInitData, salt);
+      .deployProxyByImplementation(erc721TokenImpl.address, ERC721TOKEN_TYPE, encodedInitData, salt);
     await expect(deployTxn).to.emit(factory, "ProxyDeployed").to.emit(rigistry, "Added");
   });
 

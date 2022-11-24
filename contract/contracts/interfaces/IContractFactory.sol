@@ -3,7 +3,7 @@ pragma solidity ^0.8.11;
 
 interface IContractFactory {
     /// @dev Emitted when a proxy is deployed.
-    event ProxyDeployed(address indexed implementation, address proxy, address indexed deployer);
+    event ProxyDeployed(bytes32 indexed contractType, bytes data, address proxy, address indexed deployer);
 
     /// @dev Emitted when a new version of implementation is added.
     event ImplementationAdded(address implementation, bytes32 indexed contractType, uint256 version);
@@ -27,6 +27,7 @@ interface IContractFactory {
     ///  @param salt                     Salt to use for the deterministic address generation.
     function deployProxyByImplementation(
         address implementation,
+        bytes32 _type,
         bytes memory data,
         bytes32 salt
     ) external returns (address);

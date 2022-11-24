@@ -34,6 +34,9 @@ interface IERC1155Drop is IMetadata, IERC1155Upgradeable, IClaimCondition {
     /// @dev Emitted when the sale recipient for a particular tokenId is updated.
     event SaleRecipientForTokenUpdated(uint256 indexed tokenId, address saleRecipient);
 
+    /// @dev Emitted when the claim conditions is updated.
+    event ClaimConditionsUpdated(uint256 tokenId, uint256 currentStartId, uint256 count, bool resetClaimEligibility);
+
     /**
      *  @notice Lets an account with `MINTER_ROLE` lazy mint 'n' NFTs.
      *          The URIs for each token is the provided `_baseURIForTokens` + `{tokenId}`.

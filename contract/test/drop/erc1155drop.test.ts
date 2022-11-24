@@ -14,7 +14,7 @@ const { utils } = ethers;
 // CONTRACT METADATA
 const CONTRACT_NAME: string = "ERC1155Drop";
 const CONTRACT_TYPE: string = utils.formatBytes32String(CONTRACT_NAME);
-const CONTRACT_VERSION: number = 2;
+const CONTRACT_VERSION: number = 1;
 const NATIVE_TOKEN: string = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
 // TOKEN
