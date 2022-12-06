@@ -85,4 +85,13 @@ interface IERC721Drop is IMetadata, IERC721Upgradeable, IClaimCondition {
      *                               claim conditions.
      */
     function setClaimConditions(ClaimCondition[] calldata phases, bool resetClaimEligibility) external;
+
+
+    /**
+     *  @notice returns the claim condition at the given uid.
+     *
+     *  @param conditionId          The claim condition ID for which to get claim condition.
+     *  @return claimCondition      The claim condition associate with `conditionId`.
+     */
+    function getClaimConditionById(uint256 conditionId) external view returns (ClaimCondition memory);
 }   
