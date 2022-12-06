@@ -488,7 +488,7 @@ contract ERC721Drop is
     }
 
     /// @dev Returns the claim condition at the given uid.
-    function getClaimConditionById(uint256 _conditionId) external view returns (ClaimCondition memory condition) {
+    function getClaimConditionById(uint256 _conditionId) external view override returns (ClaimCondition memory condition) {
         condition = claimCondition.phases[_conditionId];
     }
 

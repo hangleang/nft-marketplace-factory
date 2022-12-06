@@ -195,7 +195,7 @@ contract ERC1155Drop is
      *  @dev Lets an account with `MINTER_ROLE` lazy mint 'n' NFTs.
      *       The URIs for each token is the provided `_baseURIForTokens` + `{tokenId}`.
      */
-    function lazyMint(uint256 _amount, string calldata _baseURIForTokens) external onlyRole(MINTER_ROLE) {
+    function lazyMint(uint256 _amount, string calldata _baseURIForTokens) external override onlyRole(MINTER_ROLE) {
         uint256 startId = nextTokenIdToMint;
         uint256 baseURIIndex = startId + _amount;
 
@@ -246,7 +246,7 @@ contract ERC1155Drop is
         uint256 _pricePerToken,
         bytes32[] calldata _proofs,
         uint256 _proofMaxAllowance
-    ) external payable nonReentrant {
+    ) external payable override nonReentrant {
         require(isTrustedForwarder(msg.sender) || _msgSender() == tx.origin, "BOT");
 
         // Get the active claim condition index.
@@ -306,7 +306,7 @@ contract ERC1155Drop is
         uint256 _tokenId,
         ClaimCondition[] calldata _phases,
         bool _resetClaimEligibility
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    ) external override onlyRole(DEFAULT_ADMIN_ROLE) {
         ClaimConditionList storage condition = claimCondition[_tokenId];
         uint256 existingStartIndex = condition.currentStartId;
         uint256 existingPhaseCount = condition.count;
@@ -476,7 +476,7 @@ contract ERC1155Drop is
     }
 
     /// @dev Returns the claim condition at the given uid.
-    function getClaimConditionById(uint256 _tokenId, uint256 _conditionId) external view returns (ClaimCondition memory condition) {
+    function getClaimConditionById(uint256 _tokenId, uint256 _conditionId) external view override returns (ClaimCondition memory condition) {
         condition = claimCondition[_tokenId].phases[_conditionId];
     }
 
